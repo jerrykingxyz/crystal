@@ -1,0 +1,30 @@
+username="jerryking"
+unlock_text="Type password to unlock"
+clear_text="Type Ctrl + U to clear input"
+avatar_file_path=(~/avatar.jpg)
+avatar_size=240
+half_avatar_size=$[avatar_size/2]
+card_size=512
+half_card_size=$[card_size/2]
+bold_font=(Hack-Bold)
+regular_font=(Hack-Regular)
+result_file_path=(~/.config/wallpaper/avatar.png)
+
+convert $avatar_file_path -set option:size '%[fx:min(w,h)]x%[fx:min(w,h)]' \
+        xc:none +swap -gravity center -composite \
+        -resize ${avatar_size}x${avatar_size} \
+        \( +clone -alpha transparent -draw "circle $[half_avatar_size],$[half_avatar_size],$[half_avatar_size],0" \) \
+        -compose copyopacity -composite -compose over \
+        -background transparent -fill transparent -stroke "#ffffff7f" -strokewidth 4 \
+        -extent ${card_size}x${card_size}+0+$[card_size/4] \
+        -draw "circle ${half_card_size},$[card_size/4],${half_card_size},$[card_size/4-half_avatar_size]" \
+        -fill white -stroke transparent -strokewidth 0 \
+        \( +clone -shadow 50x50+0+24 \) +swap \
+        \( -size ${card_size}x${card_size} xc:none -font Hack-Regular -pointsize 54 -draw "text 0,64 '${username}'" \) \
+        \( +clone -shadow 50x10+4+4 \) +swap \
+        \( -size ${card_size}x${card_size} xc:none -font Hack-Regular -pointsize 18 \
+        -draw "text 0, 190 '${unlock_text}'" \
+	      -draw "text 0, 236 '${clear_text}'" \) \
+        -layers merge \
+        $result_file_path
+

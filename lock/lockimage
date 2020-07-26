@@ -1,0 +1,18 @@
+username="jerryking" # $USER
+unlock_text="Type password to unlock"
+clear_text="Type Ctrl + U to clear input"
+background_file_path=(~/.config/wallpaper/1.jpg)
+content_file_path=(~/.config/wallpaper/avatar.png)
+result_file_path=(~/.config/wallpaper/test1.png)
+# bw=1920
+# bh=1080
+read bw bh < <(convert $background_file_path -format "%[fx:w] %[fx:h]" info:)
+
+blur=()
+
+convert $background_file_path -blur 0x15 \
+	\( -size ${bw}x${bh} gradient:#00000000-#000000cc \) \
+	\( $content_file_path -repage +$[bw/2-384]+$[bh/2-384] \) \
+	-layers merge \
+	$result_file_path
+
