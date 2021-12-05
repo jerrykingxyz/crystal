@@ -1,0 +1,11 @@
+// install nvidia driver
+pacman -S nvidia
+
+// edit /etc/default/grub set drm open
+// add nvidia-drm.modeset=1 to boot variables
+// grub-mkconfig -o /boot/grub/grub.cfg
+
+// add initramfs module
+// add nvidia nvidia_modeset nvidia_uvm nvidia_drm to /etc/mkinitcpio.conf MODULES
+// regen initramfs mkinitcpio -g /boot/initramfs-linux.img
+// write /etc/pacman.d/hooks/nvidia.hook, source content in https://wiki.archlinux.org/title/NVIDIA
