@@ -1,0 +1,20 @@
+pacman -S netctl dhcpcd dialog spa_supplicant
+
+# copy from example
+# dhcp
+# cp /etc/netctl/examples/ethernet-dhcp /etc/netctl/xxx
+
+# wifi
+# cp /etc/netctl/examples/wireless-wpa /etc/netctl/xxx
+
+# use gui create config
+# wifi-menu
+
+# list
+# netctl list
+
+# start
+# netctl start xxx
+
+# enable
+# netctl enable xxx
