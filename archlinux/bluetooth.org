@@ -1,0 +1,21 @@
+pacman -S bluez bluez-utils
+
+# audio need install
+# pacman -S bluez-alsa
+
+# add btusb to kernel modules (need root)
+modprobe btusb
+systemctl start bluetooth
+# systemctl enable bluetooth
+
+# use bluetoothctl
+bluetoothctl
+# enable bluetooth
+power on
+# scan on
+scan on
+scan off
+# pair
+pair <tab>
+# disable bluetooth
+power off
