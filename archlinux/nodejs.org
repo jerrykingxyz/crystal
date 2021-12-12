@@ -1,0 +1,6 @@
+pacman -S nodejs
+
+# can add nodejs to pacman ignore if you do not want it upgrade
+
+# global node_modules (install package need sudo)
+# /usr/lib/node_modules

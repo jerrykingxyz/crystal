@@ -1,0 +1,5 @@
+pacman -S rustup
+
+# switch to user
+# next command will install rustc, carge, .. in user space
+rustup default stable
