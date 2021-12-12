@@ -1,0 +1,6 @@
+pacman -S alsa-utils
+
+# alsamixer
+# set default driver
+# defaults.pcm.card 1 > ~/.asoundrc
+# defaults.ctl.card 1 > ~/.asoundrc
