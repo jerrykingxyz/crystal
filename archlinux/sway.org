@@ -1,4 +1,5 @@
 // install sway
+// or install foot
 pacman -S sway alacritty
 
 // copy configs
