@@ -20,7 +20,7 @@ set $down n
 set $up p
 set $right f
 # Your preferred terminal emulator
-set $term alacritty
+set $term foot
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
@@ -38,7 +38,8 @@ output * bg /home/jerry/wallpaper/8.jpg fill
 #
 # Example configuration:
 #
-#   output HDMI-A-1 resolution 1920x1080 position 1920,0
+output HDMI-A-1 resolution 1920x1080 position 1920,0
+output DP-1 resolution 1920x1080 position 0,0
 #
 # You can get the names of your outputs by running: swaymsg -t get_outputs
 
@@ -69,6 +70,8 @@ output * bg /home/jerry/wallpaper/8.jpg fill
 # You can get the names of your inputs by running: swaymsg -t get_inputs
 # Read `man 5 sway-input` for more information about this section.
 input type:keyboard {
+    xkb_layout us
+    xkb_options ctrl:nocaps
     repeat_delay 200
 #    repeat_rate 200
 }
