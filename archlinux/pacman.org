@@ -1,0 +1,11 @@
+// check package update
+pacman -Syu
+
+// remove package
+pacman -Runs <package>
+
+// search package
+pacman -Ss <package>
+
+// install package
+pacman -S <package>
