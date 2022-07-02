@@ -7,6 +7,12 @@ pacman -S netctl dhcpcd dialog spa_supplicant
 # wifi
 # cp /etc/netctl/examples/wireless-wpa /etc/netctl/xxx
 
+# show wifi interface
+# ip link
+
+# start wifi interface
+# ip link set <interface> up
+
 # use gui create config
 # wifi-menu
 

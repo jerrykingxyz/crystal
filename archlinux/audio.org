@@ -1,6 +1,10 @@
 pacman -S alsa-utils
 
+# show sound card
+# aplay -l
+
 # alsamixer
 # set default driver
 # defaults.pcm.card 1 > ~/.asoundrc
+# defaults.pcm.device 0 > ~/.asoundrc
 # defaults.ctl.card 1 > ~/.asoundrc
