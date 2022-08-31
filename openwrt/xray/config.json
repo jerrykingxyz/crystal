@@ -1,0 +1,96 @@
+{
+  "log": {
+    "access": "none",
+    "error": "none",
+    "loglevel": "none"
+  },
+  "inbounds": [{
+    "tag": "all-in",
+    "port": 1085,
+    "protocol": "dokodemo-door",
+    "sniffing": {
+      "enabled": true,
+      "destOverride": ["http", "tls"]
+    },
+    "settings": {
+      "network": "tcp,udp",
+      "followRedirect": true
+    },
+    "streamSettings": {
+      "sockopt": {
+        "tproxy": "tproxy"
+      }
+    }
+  }],
+  "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIPv4"
+      }
+    },
+    {
+      "tag": "proxy",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "<ip>",
+            "port": 443,
+            "users": [
+              {
+                "id": "<id>",
+                "flow": "xtls-rprx-direct",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "serverName": "<hostname>"
+        }
+      }
+    },
+    {
+      "tag": "black",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      }
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "domain": [
+          "geosite:category-ads-all"
+        ],
+        "outboundTag": "black"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:gfw"
+        ],
+        "outboundTag": "proxy"
+      },
+      {
+        "type": "field",
+        "ip": [
+          "geoip:telegram"
+        ],
+        "outboundTag": "proxy"
+      }
+    ]
+  }
+}

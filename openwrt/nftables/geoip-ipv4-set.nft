@@ -1,0 +1,8 @@
+# can create this file by nft_geoip.py
+
+set geoip4 {
+    type ipv4_addr
+    flags interval
+    elements = {
+    }
+}
