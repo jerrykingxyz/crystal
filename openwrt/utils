@@ -1,0 +1,17 @@
+#!/bin/sh
+
+render_config() {
+    local template_file=$1;
+    local var_file=$2;
+    awk -F"=" '
+NR==FNR {
+    a["__" $1 "__"]=$2
+    next
+}
+{
+  for (key in a) {
+    gsub(key, a[key])
+  }
+  print
+}' $var_file $template_file
+}

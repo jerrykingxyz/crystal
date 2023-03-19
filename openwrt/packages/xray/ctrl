@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+# go to current dir
+cd "$(dirname -- "${BASH_SOURCE[0]}")"
+source ../../utils
+
+ACTION=$1
+CFG_FILE="../../temp_conf/xray_config.json"
+
+if [ "$ACTION" = "setup" ]; then
+    echo "setup"
+fi
+
+if [ "$ACTION" = "start" ]; then
+    render_config ./template.cfg config > $CFG_FILE
+fi
+
+if [ "$ACTION" = "stop" ]; then
+    echo "stop"
+fi
