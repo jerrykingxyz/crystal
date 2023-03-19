@@ -1,0 +1,34 @@
+#!/bin/sh
+
+set -e
+
+# go to current dir
+cd "$(dirname -- "${BASH_SOURCE[0]}")"
+source ../../utils
+
+ACTION=$1
+CFG_FILE="../../temp_conf/nft.cfg"
+
+#if [ "$ACTION" = "setup" ]; then
+#    echo "setup"
+#fi
+
+if [ "$ACTION" = "start" ]; then
+    if [[ $(ip route list) != *"default"* ]]; then
+        ip route add local default dev lo table 100
+    fi
+    if [[ $(ip rule list) != *"fwmark"* ]]; then
+        ip rule add fwmark 1 table 100
+    fi
+    render_config ./template.cfg config > $CFG_FILE
+fi
+
+if [ "$ACTION" = "stop" ]; then
+    if [[ $(ip route list) == *"default"* ]]; then
+        ip route del local default dev lo table 100
+    fi
+    if [[ $(ip rule list) == *"fwmark"* ]]; then
+        ip rule del fwmark 1 table 100
+    fi
+    echo "stop"
+fi
