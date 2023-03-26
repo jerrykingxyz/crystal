@@ -15,6 +15,10 @@ else
     PKG_NAME=($PKG_NAME)
 fi
 
+if [ "$ACTION" = "setup" ]; then
+    opkg update
+fi
+
 for pkg in "${PKG_NAME[@]}"; do
     sh ./packages/$pkg/ctrl $ACTION
 done

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+set -e
+
+# go to current dir
+cd "$(dirname -- "${BASH_SOURCE[0]}")"
+source ../../utils
+
+ACTION=$1
+CFG_FILE="../../temp_conf/dns_config"
+AD_DOMAIN_FILE="../../temp_conf/dns_ad_list"
+
+if [ "$ACTION" = "setup" ]; then
+    opkg install smartdns
+    /etc/init.d/smartdns disable
+    wget https://github.com/privacy-protection-tools/anti-AD/blob/master/anti-ad-smartdns.conf -o $AD_DOMAIN_FILE
+fi
+
+if [ "$ACTION" = "start" ]; then
+    render_config ./template.cfg config > $CFG_FILE
+    smartdns -c $CFG_FILE
+fi
+
+if [ "$ACTION" = "stop" ]; then
+    kill -9 $(pgrep -f smartdns)
+fi
