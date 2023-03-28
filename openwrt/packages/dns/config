@@ -1,5 +1,4 @@
-port=5353
-proxy_port=1085
-proxy_protocol=socks5
+port=53
+proxy=socks5://127.0.0.1:1085
 ad_domain_file=xx
 proxy_domain_file=xx

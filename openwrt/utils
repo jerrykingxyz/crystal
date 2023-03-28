@@ -19,10 +19,16 @@ NR==FNR {
 }' $var_file $template_file
 }
 
-update_config() {
+update_config_var() {
     local var_file=$1
     local key=$2
     local value=$3
     awk -F"=" -v k="$key" -v v="$value" '$1==k{$2=v} {print $1"="$2}' $var_file > ./temp
     mv -f ./temp $var_file
+}
+
+get_config_var() {
+    local var_file=$1
+    local key=$2
+    awk -F"=" -v k="$key" "$1==k{print $2}" $var_file
 }
