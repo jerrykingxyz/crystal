@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+#
+# this script used in /etc/init.d
+
+START=19
+NAME=crystal
+
+start() {
+    echo $(pwd)
+}
+
+stop() {
+
+}

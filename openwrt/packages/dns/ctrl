@@ -2,17 +2,18 @@
 
 set -e
 
-# go to current dir
-cd "$(dirname -- "${BASH_SOURCE[0]}")"
-source ../../utils
+CUR_DIR="$(dirname -- "${BASH_SOURCE[0]}")"
+source $CUR_DIR/../../utils
 
 ACTION=$1
-CFG_FILE="$TEMP_DIR/dns_config"
+CFG_FILE="$CUR_DIR/config"
+TEMPLATE_FILE="$CUR_DIR/template.cfg"
+OUTPUT_CFG_FILE="$TEMP_DIR/dns_config"
 AD_DOMAIN_FILE="$TEMP_DIR/dns_ad_list"
 PROXY_DOMAIN_FILE="$TEMP_DIR/dns_proxy_list"
 
 set_as_forward_dnsmasq() {
-    local port=$(get_config_var ./config "port")
+    local port=$(get_config_var $CFG_FILE "port")
     local addr="127.0.0.1#$port"
     uci -q delete dhcp.@dnsmasq[0].server
     uci -q add_list dhcp.@dnsmasq[0].server="$addr"
@@ -39,16 +40,16 @@ if [ "$ACTION" = "setup" ]; then
 
     # download ad domain list
     wget https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/reject-list.txt -O $AD_DOMAIN_FILE
-    update_config_var ./config "ad_domain_file" $AD_DOMAIN_FILE
+    update_config_var $CFG_FILE "ad_domain_file" $AD_DOMAIN_FILE
 
     # download proxy domain list
     wget https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt -O $PROXY_DOMAIN_FILE
-    update_config_var ./config "proxy_domain_file" $PROXY_DOMAIN_FILE
+    update_config_var $CFG_FILE "proxy_domain_file" $PROXY_DOMAIN_FILE
 fi
 
 if [ "$ACTION" = "start" ]; then
-    render_config ./template.cfg ./config > $CFG_FILE
-    smartdns -c $CFG_FILE
+    render_config $TEMPLATE_FILE $CFG_FILE > $OUTPUT_CFG_FILE
+    smartdns -c $OUTPUT_CFG_FILE
     set_as_forward_dnsmasq
 fi
 
@@ -58,5 +59,5 @@ if [ "$ACTION" = "stop" ]; then
 fi
 
 if [ "$ACTION" = "config" ]; then
-    update_config_var ./config $2 $3
+    update_config_var $CFG_FILE $2 $3
 fi

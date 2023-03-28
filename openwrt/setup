@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# this script use to setup openwrt env
+set -e
+CUR_DIR="$(dirname -- "${BASH_SOURCE[0]}")"
+
+ln -s $CUR_DIR/init /etc/init.d/crystal

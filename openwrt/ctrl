@@ -2,15 +2,14 @@
 
 set -e
 
-# go to current dir
-cd "$(dirname -- "${BASH_SOURCE[0]}")"
+CUR_DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 
 ACTION=$1
 PKG_NAME=$2
 
 # transform PKG_NAME to array
 if [ -z "$PKG_NAME" ]; then
-    PKG_NAME=($(ls ./packages))
+    PKG_NAME=($(ls $CUR_DIR/packages))
 else
     PKG_NAME=($PKG_NAME)
 fi
@@ -20,5 +19,5 @@ if [ "$ACTION" = "setup" ]; then
 fi
 
 for pkg in "${PKG_NAME[@]}"; do
-    sh ./packages/$pkg/ctrl $ACTION
+    sh $CUR_DIR/packages/$pkg/ctrl $ACTION
 done
