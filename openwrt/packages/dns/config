@@ -1,4 +1,5 @@
-ip=127.0.0.1
-hostname=hostname
-user_id=xxxx
+port=5353
+proxy_port=1085
+proxy_protocol=socks5
 ad_domain_file=xx
+proxy_domain_file=xx

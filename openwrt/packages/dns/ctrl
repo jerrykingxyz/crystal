@@ -9,6 +9,7 @@ source ../../utils
 ACTION=$1
 CFG_FILE="$TEMP_DIR/dns_config"
 AD_DOMAIN_FILE="$TEMP_DIR/dns_ad_list"
+PROXY_DOMAIN_FILE="$TEMP_DIR/dns_proxy_list"
 
 if [ "$ACTION" = "setup" ]; then
     # install and disable smartdns
@@ -16,8 +17,12 @@ if [ "$ACTION" = "setup" ]; then
     /etc/init.d/smartdns disable
 
     # download ad domain list
-    wget https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-smartdns.conf -O $AD_DOMAIN_FILE
+    wget https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/reject-list.txt -O $AD_DOMAIN_FILE
     update_config ./config "ad_domain_file" $AD_DOMAIN_FILE
+
+    # download proxy domain list
+    wget https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt -O $PROXY_DOMAIN_FILE
+    update_config ./config "proxy_domain_file" $PROXY_DOMAIN_FILE
 fi
 
 if [ "$ACTION" = "start" ]; then
