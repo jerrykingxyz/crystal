@@ -7,20 +7,28 @@ cd "$(dirname -- "${BASH_SOURCE[0]}")"
 source ../../utils
 
 ACTION=$1
-CFG_FILE="../../temp_conf/dns_config"
-AD_DOMAIN_FILE="../../temp_conf/dns_ad_list"
+CFG_FILE="$TEMP_DIR/dns_config"
+AD_DOMAIN_FILE="$TEMP_DIR/dns_ad_list"
 
 if [ "$ACTION" = "setup" ]; then
+    # install and disable smartdns
     opkg install smartdns
     /etc/init.d/smartdns disable
-    wget https://github.com/privacy-protection-tools/anti-AD/blob/master/anti-ad-smartdns.conf -o $AD_DOMAIN_FILE
+
+    # download ad domain list
+    wget https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-smartdns.conf -O $AD_DOMAIN_FILE
+    update_config ./config "ad_domain_file" $AD_DOMAIN_FILE
 fi
 
 if [ "$ACTION" = "start" ]; then
-    render_config ./template.cfg config > $CFG_FILE
+    render_config ./template.cfg ./config > $CFG_FILE
     smartdns -c $CFG_FILE
 fi
 
 if [ "$ACTION" = "stop" ]; then
     kill -9 $(pgrep -f smartdns)
+fi
+
+if [ "$ACTION" = "config" ]; then
+    update_config ./config $2 $3
 fi

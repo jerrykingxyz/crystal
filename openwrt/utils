@@ -1,8 +1,11 @@
 #!/bin/sh
 
+OPENWRT_DIR=$(dirname -- "${BASH_SOURCE[0]}")
+TEMP_DIR="$OPENWRT_DIR/temp_conf"
+
 render_config() {
-    local template_file=$1;
-    local var_file=$2;
+    local template_file=$1
+    local var_file=$2
     awk -F"=" '
 NR==FNR {
     a["__" $1 "__"]=$2
@@ -14,4 +17,12 @@ NR==FNR {
   }
   print
 }' $var_file $template_file
+}
+
+update_config() {
+    local var_file=$1
+    local key=$2
+    local value=$3
+    awk -F"=" -v k="$key" -v v="$value" '$1==k{$2=v} {print $1"="$2}' $var_file > ./temp
+    mv -f ./temp $var_file
 }
