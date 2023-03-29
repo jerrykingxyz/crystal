@@ -36,8 +36,6 @@ unset_as_forward_dnsmasq() {
 }
 
 if [ "$ACTION" = "setup" ]; then
-    # install and disable smartdns from opkg
-    # opkg install smartdns
     # install from github
     opkg install "https://github.com/pymumu/smartdns/releases/download/Release41/smartdns.1.2023.03.04-1125.$(uname -m)-openwrt-all.ipk"
     /etc/init.d/smartdns disable
@@ -63,7 +61,7 @@ if [ "$ACTION" = "stop" ]; then
 fi
 
 if [ "$ACTION" = "config" ]; then
-    update_config_var $CFG_FILE $2 $3
+    update_config_var $CFG_FILE "$2" "$3"
 fi
 
 if [ "$ACTION" = "remove" ]; then

@@ -12,10 +12,6 @@ if [ -z "$PKG_NAME" ]; then
     PKG_NAME=$(ls $CUR_DIR/packages)
 fi
 
-if [ "$ACTION" = "setup" ]; then
-    opkg update
-fi
-
 for pkg in $PKG_NAME; do
     sh $CUR_DIR/packages/$pkg/ctrl $ACTION
 done

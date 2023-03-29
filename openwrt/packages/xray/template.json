@@ -1,0 +1,108 @@
+{
+  "log": {
+    "access": "none",
+    "error": "none",
+    "loglevel": "none"
+  },
+  "inbounds": [
+    {
+      "tag": "all-in",
+      "listen": "127.0.0.1",
+      "port": 1085,
+      "protocol": "dokodemo-door",
+      "sniffing": {
+        "enabled": true,
+        "routeOnly": true,
+        "destOverride": ["http", "tls", "quic"]
+      },
+      "settings": {
+        "network": "tcp,udp",
+        "followRedirect": true
+      },
+      "streamSettings": {
+        "sockopt": {
+          "tproxy": "tproxy"
+        }
+      }
+    },
+    {
+      "tag": "socks",
+      "listen": "127.0.0.1",
+      "port": 1086,
+      "protocol": "socks",
+      "settings": { "udp": true }
+    },
+    {
+      "tag": "http",
+      "listen": "127.0.0.1",
+      "port": 1087,
+      "protocol": "http"
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIPv4"
+      }
+    },
+    {
+      "tag": "proxy",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "__server_ip__",
+            "port": 443,
+            "users": [
+              {
+                "id": "__server_user_id__",
+                "flow": "xtls-rprx-vision",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "serverName": "__server_hostname__",
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "tag": "black",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      }
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "domain": ["ext:__geo_site_file__:category-ads-all"],
+        "outboundTag": "black"
+      },
+      {
+        "type": "field",
+        "domain": ["ext:__geo_site_file__:geolocation-!cn"],
+        "outboundTag": "proxy"
+      },
+      {
+        "type": "field",
+        "ip": ["8.8.8.8", "8.8.4.4", "ext:__geo_ip_file__:telegram"],
+        "outboundTag": "proxy"
+      }
+    ]
+  }
+}

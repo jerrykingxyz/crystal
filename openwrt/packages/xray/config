@@ -1,3 +1,5 @@
-ip=127.0.0.1
-hostname=hostname
-user_id=xxxx
+server_ip=1.1.1.1
+server_hostname=hostname
+server_user_id=xxxx
+geo_ip_file=xx
+geo_site_file=xx

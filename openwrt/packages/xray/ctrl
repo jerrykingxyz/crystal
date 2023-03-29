@@ -9,17 +9,38 @@ source $OPENWRT_DIR/utils
 
 ACTION=$1
 CFG_FILE="$CUR_DIR/config"
-TEMPLATE_FILE="$CUR_DIR/template.cfg"
+TEMPLATE_FILE="$CUR_DIR/template.json"
 OUTPUT_CFG_FILE="$TEMP_DIR/xray_config.json"
+GEO_IP_FILE="$TEMP_DIR/xray_geoip.dat"
+GEO_SITE_FILE="$TEMP_DIR/xray_geosite.dat"
 
 if [ "$ACTION" = "setup" ]; then
-    echo "setup"
+    # install from opkg
+    opkg update
+    opkg install xray
+    /etc/init.d/xray disable
+
+    # download geo ip & geo site
+    wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -O $GEO_IP_FILE
+    update_config_var $CFG_FILE "geo_ip_file" $GEO_IP_FILE
+    
+    wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -O $GEO_SITE_FILE
+    update_config_var $CFG_FILE "geo_site_file" $GEO_SITE_FILE
 fi
 
 if [ "$ACTION" = "start" ]; then
     render_config $TEMPLATE_FILE $CFG_FILE > $OUTPUT_CFG_FILE
+    XRAY_LOCATION_ASSET=/ xray run -c $OUTPUT_CFG_FILE &
 fi
 
 if [ "$ACTION" = "stop" ]; then
-    echo "stop"
+    kill_with_process_name xray
+fi
+
+if [ "$ACTION" = "config" ]; then
+    update_config_var $CFG_FILE "$2" "$3"
+fi
+
+if [ "$ACTION" = "remove" ]; then
+    opkg remove xray
 fi
