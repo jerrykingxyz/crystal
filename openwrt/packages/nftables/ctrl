@@ -11,27 +11,61 @@ ACTION=$1
 CFG_FILE="$CUR_DIR/config"
 TEMPLATE_FILE="$CUR_DIR/template.cfg"
 OUTPUT_CFG_FILE="$TEMP_DIR/nft.cfg"
+DIRECT_IP_FILE="$TEMP_DIR/nft_direct_ips"
+DIRECT_IP_SET_NAME="nft_direct_ips"
+NFT_TABLE_NAME="nft_proxy_table"
 
-#if [ "$ACTION" = "setup" ]; then
-#    echo "setup"
-#fi
+update_list_to_set() {
+    local set_name=$1
+    local list_file=$2
+    local front="set $set_name {
+    type ipv4_addr
+    flags interval
+    elements = {"
+    local foot="}
+}"
+    awk -v front="$front" -v foot="$foot" 'NR==1{print front} NR>1{print prev","} {prev=$0} END {print foot}' $list_file > ./temp
+    mv -f ./temp $list_file
+}
+
+if [ "$ACTION" = "setup" ]; then
+    wget https://raw.githubusercontent.com/mayaxcn/china-ip-list/master/chnroute.txt -O $DIRECT_IP_FILE
+    update_list_to_set $DIRECT_IP_SET_NAME $DIRECT_IP_FILE
+    update_config_var $CFG_FILE "direct_ip_set_name" $DIRECT_IP_SET_NAME
+    update_config_var $CFG_FILE "direct_ip_file" $DIRECT_IP_FILE
+    update_config_var $CFG_FILE "table_name" $NFT_TABLE_NAME
+fi
 
 if [ "$ACTION" = "start" ]; then
-    if [[ $(ip route list) != *"default"* ]]; then
+    if [ -z "$(ip route show local default dev lo table 100)" ]; then
         ip route add local default dev lo table 100
     fi
-    if [[ $(ip rule list) != *"fwmark"* ]]; then
+    if [[ "$(ip rule list)" != *"fwmark"* ]]; then
         ip rule add fwmark 1 table 100
     fi
+    if [[ "$(nft list tables)" == *"$NFT_TABLE_NAME"* ]]; then
+        nft delete table ip $NFT_TABLE_NAME
+    fi
     render_config $TEMPLATE_FILE $CFG_FILE > $OUTPUT_CFG_FILE
+    nft -f $OUTPUT_CFG_FILE
 fi
 
 if [ "$ACTION" = "stop" ]; then
-    if [[ $(ip route list) == *"default"* ]]; then
+    if [ ! -z "$(ip route show local default dev lo table 100)" ]; then
         ip route del local default dev lo table 100
     fi
-    if [[ $(ip rule list) == *"fwmark"* ]]; then
+    if [[ "$(ip rule list)" == *"fwmark"* ]]; then
         ip rule del fwmark 1 table 100
     fi
-    echo "stop"
+    if [[ "$(nft list tables)" == *"$NFT_TABLE_NAME"* ]]; then
+        nft delete table ip $NFT_TABLE_NAME
+    fi
+fi
+
+if [ "$ACTION" = "config" ]; then
+    update_config_var $CFG_FILE "$2" "$3"
+fi
+
+if [ "$ACTION" = "remove" ]; then
+    echo "remove"
 fi
