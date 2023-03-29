@@ -4,11 +4,17 @@
 
 START=19
 NAME=crystal
+CUR_DIR=$(dirname "$(readlink -f /etc/init.d/$NAME)")
 
 start() {
-    echo $(pwd)
+    stop
+    $CUR_DIR/ctrl start
 }
 
 stop() {
+    $CUR_DIR/ctrl stop
+}
 
+restart() {
+    start
 }

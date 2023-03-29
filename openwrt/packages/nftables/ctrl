@@ -2,12 +2,15 @@
 
 set -e
 
-# go to current dir
-cd "$(dirname -- "${BASH_SOURCE[0]}")"
-source ../../utils
+CUR_DIR=$(dirname "$(readlink -f -- "$0")")
+OPENWRT_DIR=$(dirname $(dirname $CUR_DIR))
+TEMP_DIR="$OPENWRT_DIR/temp_conf"
+source $OPENWRT_DIR/utils
 
 ACTION=$1
-CFG_FILE="../../temp_conf/nft.cfg"
+CFG_FILE="$CUR_DIR/config"
+TEMPLATE_FILE="$CUR_DIR/template.cfg"
+OUTPUT_CFG_FILE="$TEMP_DIR/nft.cfg"
 
 #if [ "$ACTION" = "setup" ]; then
 #    echo "setup"
@@ -20,7 +23,7 @@ if [ "$ACTION" = "start" ]; then
     if [[ $(ip rule list) != *"fwmark"* ]]; then
         ip rule add fwmark 1 table 100
     fi
-    render_config ./template.cfg config > $CFG_FILE
+    render_config $TEMPLATE_FILE $CFG_FILE > $OUTPUT_CFG_FILE
 fi
 
 if [ "$ACTION" = "stop" ]; then

@@ -2,8 +2,10 @@
 
 set -e
 
-CUR_DIR="$(dirname -- "${BASH_SOURCE[0]}")"
-source $CUR_DIR/../../utils
+CUR_DIR=$(dirname "$(readlink -f -- "$0")")
+OPENWRT_DIR=$(dirname $(dirname $CUR_DIR))
+TEMP_DIR="$OPENWRT_DIR/temp_conf"
+source $OPENWRT_DIR/utils
 
 ACTION=$1
 CFG_FILE="$CUR_DIR/config"
@@ -15,7 +17,7 @@ PROXY_DOMAIN_FILE="$TEMP_DIR/dns_proxy_list"
 set_as_forward_dnsmasq() {
     local port=$(get_config_var $CFG_FILE "port")
     local addr="127.0.0.1#$port"
-    uci -q delete dhcp.@dnsmasq[0].server
+    uci -q delete dhcp.@dnsmasq[0].server || true
     uci -q add_list dhcp.@dnsmasq[0].server="$addr"
     uci -q set dhcp.@dnsmasq[0].noresolv=1
     uci -q set dhcp.@dnsmasq[0].rebind_protection=0
@@ -25,8 +27,8 @@ set_as_forward_dnsmasq() {
 }
 
 unset_as_forward_dnsmasq() {
-    uci -q delete dhcp.@dnsmasq[0].server
-    uci -q delete dhcp.@dnsmasq[0].noresolv
+    uci -q delete dhcp.@dnsmasq[0].server || true
+    uci -q delete dhcp.@dnsmasq[0].noresolv || true
     uci -q set dhcp.@dnsmasq[0].rebind_protection=1
     uci -q set dhcp.@dnsmasq[0].domainneeded=1
     uci commit dhcp
@@ -34,8 +36,10 @@ unset_as_forward_dnsmasq() {
 }
 
 if [ "$ACTION" = "setup" ]; then
-    # install and disable smartdns
-    opkg install smartdns
+    # install and disable smartdns from opkg
+    # opkg install smartdns
+    # install from github
+    opkg install "https://github.com/pymumu/smartdns/releases/download/Release41/smartdns.1.2023.03.04-1125.$(uname -m)-openwrt-all.ipk"
     /etc/init.d/smartdns disable
 
     # download ad domain list
@@ -54,10 +58,14 @@ if [ "$ACTION" = "start" ]; then
 fi
 
 if [ "$ACTION" = "stop" ]; then
-    kill -9 $(pgrep -f smartdns)
+    kill_with_process_name smartdns
     unset_as_forward_dnsmasq
 fi
 
 if [ "$ACTION" = "config" ]; then
     update_config_var $CFG_FILE $2 $3
+fi
+
+if [ "$ACTION" = "remove" ]; then
+    opkg remove smartdns
 fi

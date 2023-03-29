@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# this script use to remove crystal
+set -e
+CUR_DIR=$(dirname "$(readlink -f -- "$0")")
+
+rm -f /etc/init.d/crystal
+
+$CUR_DIR/ctrl remove

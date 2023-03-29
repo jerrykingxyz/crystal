@@ -1,8 +1,5 @@
 #!/bin/sh
 
-OPENWRT_DIR=$(dirname -- "${BASH_SOURCE[0]}")
-TEMP_DIR="$OPENWRT_DIR/temp_conf"
-
 render_config() {
     local template_file=$1
     local var_file=$2
@@ -30,5 +27,13 @@ update_config_var() {
 get_config_var() {
     local var_file=$1
     local key=$2
-    awk -F"=" -v k="$key" "$1==k{print $2}" $var_file
+    awk -F"=" -v k="$key" '$1==k{print $2}' $var_file
+}
+
+kill_with_process_name() {
+    local name=$1
+    local pid=$(pgrep -f $name)
+    if [ ! -z "$pid" ]; then
+        kill -9 $pid
+    fi
 }

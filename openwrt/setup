@@ -2,6 +2,13 @@
 
 # this script use to setup openwrt env
 set -e
-CUR_DIR="$(dirname -- "${BASH_SOURCE[0]}")"
+CUR_DIR=$(dirname "$(readlink -f -- "$0")")
 
 ln -s $CUR_DIR/init /etc/init.d/crystal
+
+chmod +x $CUR_DIR/init
+chmod +x $CUR_DIR/ctrl
+chmod +x $CUR_DIR/remove
+chmod +x $CUR_DIR/packages/*/ctrl
+
+$CUR_DIR/ctrl setup
