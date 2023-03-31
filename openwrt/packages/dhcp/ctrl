@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -e
+
+CUR_DIR=$(dirname "$(readlink -f -- "$0")")
+OPENWRT_DIR=$(dirname $(dirname $CUR_DIR))
+TEMP_DIR="$OPENWRT_DIR/temp_conf"
+source $OPENWRT_DIR/utils
+
+ACTION=$1
+CFG_FILE="$CUR_DIR/config"
+
+clear_dhcp_host() {
+    while true; do
+        uci -q delete dhcp.@host[-1] || break
+    done
+    uci commit dhcp
+    /etc/init.d/dnsmasq restart
+}
+
+# if [ "$ACTION" = "setup" ]; then
+#     echo "setup"
+# fi
+
+if [ "$ACTION" = "start" ]; then
+    clear_dhcp_host
+    while read line; do
+        if [ ! -z "$line" ]; then
+            uci -q add dhcp host
+            uci -q set dhcp.@host[-1].dns='1'
+            params=$(echo "$line" | awk -F"[=|/]" '{print $1,$2,$3}')
+            index=0
+            for item in $params; do
+                if [ $index = 0 ]; then
+                    # name
+                    uci -q set dhcp.@host[-1].name="$item"
+                elif [ $index = 1 ]; then
+                    # ip
+                    uci -q set dhcp.@host[-1].ip="$item"
+                elif [ $index = 2 ]; then
+                    # mac
+                    uci -q set dhcp.@host[-1].mac="$item"
+                fi
+                index=$((index+1))
+            done
+        fi
+    done < $CFG_FILE
+    uci commit dhcp
+    /etc/init.d/dnsmasq restart
+fi
+
+if [ "$ACTION" = "stop" ]; then
+    clear_dhcp_host
+fi
+
+if [ "$ACTION" = "config" ]; then
+    key="$2"
+    value="$3"
+    if [ -z "$value" ]; then
+        del_config_var $CFG_FILE $key
+    else
+        add_config_var $CFG_FILE $key $value
+    fi
+fi
+
+# if [ "$ACTION" = "remove" ]; then
+#     echo "remove"
+# fi
