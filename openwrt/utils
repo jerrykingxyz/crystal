@@ -20,8 +20,34 @@ update_config_var() {
     local var_file=$1
     local key=$2
     local value=$3
-    awk -F"=" -v k="$key" -v v="$value" '$1==k{$2=v} {print $1"="$2}' $var_file > ./temp
+    awk -F"=" -v k="$key" -v v="$value" '$1==k{print $1"="v;next} 1' $var_file > ./temp
     mv -f ./temp $var_file
+}
+
+exist_config_var() {
+    local var_file=$1
+    local key=$2
+    awk -F"=" -v k="$key" '$1==k{print "1"}' $var_file
+}
+
+add_config_var() {
+    local var_file=$1
+    local key=$2
+    local value=$3
+    if [ -z "$(exist_config_var $var_file $key)" ]; then
+        echo "$key=$value" >> $var_file
+    else
+        update_config_var $var_file $key $value
+    fi
+}
+
+del_config_var() {
+    local var_file=$1
+    local key=$2
+    if [ ! -z "$(exist_config_var $var_file $key)" ]; then
+        awk -F"=" -v k="$key" '$1==k{next} 1' $var_file > ./temp
+        mv -f ./temp $var_file
+    fi
 }
 
 get_config_var() {
