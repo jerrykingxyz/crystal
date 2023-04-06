@@ -33,6 +33,11 @@ if [ "$ACTION" = "start" ]; then
     XRAY_LOCATION_ASSET=/ xray run -c $OUTPUT_CFG_FILE &
 fi
 
+if [ "$ACTION" = "restart" ]; then
+    "$0" stop
+    "$0" start
+fi
+
 if [ "$ACTION" = "stop" ]; then
     kill_with_process_name xray
 fi

@@ -49,6 +49,10 @@ if [ "$ACTION" = "start" ]; then
     /etc/init.d/dnsmasq restart
 fi
 
+if [ "$ACTION" = "restart" ]; then
+    "$0" start
+fi
+
 if [ "$ACTION" = "stop" ]; then
     clear_dhcp_host
 fi

@@ -23,7 +23,6 @@ set_as_forward_dnsmasq() {
     uci -q set dhcp.@dnsmasq[0].rebind_protection=0
     uci -q set dhcp.@dnsmasq[0].domainneeded=0
     uci commit dhcp
-    /etc/init.d/dnsmasq reload
 }
 
 unset_as_forward_dnsmasq() {
@@ -32,7 +31,6 @@ unset_as_forward_dnsmasq() {
     uci -q set dhcp.@dnsmasq[0].rebind_protection=1
     uci -q set dhcp.@dnsmasq[0].domainneeded=1
     uci commit dhcp
-    /etc/init.d/dnsmasq reload
 }
 
 if [ "$ACTION" = "setup" ]; then
@@ -53,11 +51,17 @@ if [ "$ACTION" = "start" ]; then
     render_config $TEMPLATE_FILE $CFG_FILE > $OUTPUT_CFG_FILE
     smartdns -c $OUTPUT_CFG_FILE
     set_as_forward_dnsmasq
+    /etc/init.d/dnsmasq reload
+    unset_as_forward_dnsmasq
+fi
+
+if [ "$ACTION" = "restart" ]; then
+    "$0" start
 fi
 
 if [ "$ACTION" = "stop" ]; then
     kill_with_process_name smartdns
-    unset_as_forward_dnsmasq
+    /etc/init.d/dnsmasq reload
 fi
 
 if [ "$ACTION" = "config" ]; then

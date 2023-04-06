@@ -16,5 +16,5 @@ stop() {
 }
 
 restart() {
-    start
+    $CUR_DIR/ctrl restart
 }

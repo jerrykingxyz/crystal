@@ -50,6 +50,10 @@ if [ "$ACTION" = "start" ]; then
     nft -f $OUTPUT_CFG_FILE
 fi
 
+if [ "$ACTION" = "restart" ]; then
+    "$0" start
+fi
+
 if [ "$ACTION" = "stop" ]; then
     if [ ! -z "$(ip route show local default dev lo table 100)" ]; then
         ip route del local default dev lo table 100
