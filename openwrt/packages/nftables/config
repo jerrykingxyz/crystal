@@ -1,5 +1,5 @@
 proxy_source_ips=192.168.226.0/24
 proxy_address=127.0.0.1:1085
-table_name=xx
-direct_ip_set_name=xx
-direct_ip_file=xx
+table_name=__add_when_setup__
+direct_ip_set_name=__add_when_setup__
+direct_ip_file=__add_when_setup__

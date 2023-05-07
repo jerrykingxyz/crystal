@@ -1,4 +1,4 @@
 port=5353
 proxy=socks5://127.0.0.1:1086
-ad_domain_file=xx
-proxy_domain_file=xx
+ad_domain_file=__add_when_setup__
+proxy_domain_file=__add_when_setup__

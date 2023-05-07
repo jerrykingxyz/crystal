@@ -1,5 +1,5 @@
 server_ip=1.1.1.1
 server_hostname=hostname
-server_user_id=xxxx
-geo_ip_file=xx
-geo_site_file=xx
+server_user_id=abc
+geo_ip_file=__add_when_setup__
+geo_site_file=__add_when_setup__
