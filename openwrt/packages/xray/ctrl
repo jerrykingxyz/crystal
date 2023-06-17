@@ -17,7 +17,7 @@ GEO_SITE_FILE="$TEMP_DIR/xray_geosite.dat"
 if [ "$ACTION" = "setup" ]; then
     # install from opkg
     opkg update
-    opkg install xray
+    opkg install xray-core
     /etc/init.d/xray disable
 
     # download geo ip & geo site

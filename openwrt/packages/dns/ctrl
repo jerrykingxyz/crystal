@@ -35,7 +35,10 @@ unset_as_forward_dnsmasq() {
 
 if [ "$ACTION" = "setup" ]; then
     # install from github
-    opkg install "https://github.com/pymumu/smartdns/releases/download/Release41/smartdns.1.2023.03.04-1125.$(uname -m)-openwrt-all.ipk"
+    IPK_FILE="$TEMP_DIR/smartdns.ipk"
+    wget -O "$IPK_FILE" "https://github.com/pymumu/smartdns/releases/download/Release41/smartdns.1.2023.03.04-1125.$(uname -m)-openwrt-all.ipk"
+    opkg install "$IPK_FILE"
+    rm -f "$IPK_FILE"
     /etc/init.d/smartdns disable
 
     # download ad domain list
