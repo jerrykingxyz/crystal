@@ -12,6 +12,15 @@ if [ -z "$PKG_NAME" ]; then
     PKG_NAME=$(ls $CUR_DIR/packages)
 fi
 
+if [ "$ACTION" = "setup" ]; then
+    rm -f /etc/init.d/crystal
+    ln -s $CUR_DIR/crystal /etc/init.d/crystal
+fi
+
+if [ "$ACTION" = "remove" ]; then
+    rm -f /etc/init.d/crystal
+fi
+
 for pkg in $PKG_NAME; do
     sh $CUR_DIR/packages/$pkg/ctrl $ACTION
 done

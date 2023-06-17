@@ -7,7 +7,6 @@ NAME=crystal
 CUR_DIR=$(dirname "$(readlink -f /etc/init.d/$NAME)")
 
 start() {
-    stop
     $CUR_DIR/ctrl start
 }
 
