@@ -95,6 +95,11 @@
       },
       {
         "type": "field",
+        "domain": ["ext:__geo_site_file__:category-games"],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
         "domain": ["ext:__geo_site_file__:geolocation-!cn"],
         "outboundTag": "proxy"
       },
