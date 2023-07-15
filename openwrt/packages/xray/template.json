@@ -95,6 +95,22 @@
       },
       {
         "type": "field",
+        "domain": [
+          "steam-api.com",
+          "steam-chat.com",
+          "steamcommunity.com",
+          "steamcontent.com",
+          "steamdeck.com",
+          "steamgames.com",
+          "steampowered.com",
+          "steamserver.net",
+          "steamstatic.com",
+          "steamusercontent.com"
+        ],
+        "outboundTag": "proxy"
+      },
+      {
+        "type": "field",
         "domain": ["ext:__geo_site_file__:category-games"],
         "outboundTag": "direct"
       },
