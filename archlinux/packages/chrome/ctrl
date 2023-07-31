@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+CUR_DIR=$(dirname "$(readlink -f -- "${BASH_SOURCE[0]}")")
+ARCHLINUX_DIR=$(dirname $(dirname $CUR_DIR))
+TEMP_DIR="$ARCHLINUX_DIR/temp_conf"
+source $ARCHLINUX_DIR/utils
+
+ACTION=$1
+
+if [ "$ACTION" = "root_setup" ]; then
+    pacman_install chromium
+fi
+
+if [[ -z "$ACTION" || "$ACTION" = "start" ]]; then
+    chromium --ozone-platform-hint=auto --force-dark-mode
+fi
+
+if [ "$ACTION" = "root_remove" ]; then
+    pacman_remove chromium
+fi

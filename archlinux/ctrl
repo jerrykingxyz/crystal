@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e
+
+CUR_DIR=$(dirname "$(readlink -f -- "${BASH_SOURCE[0]}")")
+
+ACTION=$1
+PKG_NAME=$2
+REGISTER_PROFILE_CODE="source $CUR_DIR/profile"
+
+# transform PKG_NAME to array
+if [ -z "$PKG_NAME" ]; then
+    PKG_NAME=$(ls $CUR_DIR/packages)
+fi
+
+if [ "$ACTION" = "user_setup" ]; then
+    # register `source ./profile` to .bashrc
+    if [[ ! -f ~/.bashrc || -z $(grep "$REGISTER_PROFILE_CODE" ~/.bashrc) ]]; then
+        # add command
+        echo "$REGISTER_PROFILE_CODE" >> ~/.bashrc
+    fi
+fi
+
+if [ "$ACTION" = "user_remove" ]; then
+    # remove `source ./profile` from .bashrc
+    content=$(grep -v "$REGISTER_PROFILE_CODE" ~/.bashrc)
+    echo "$content" > ~/.bashrc
+fi
+
+if [ "$ACTION" = "profile" ]; then
+    export PATH="$CUR_DIR/command:$PATH"
+fi
+
+# set to another variable to avoid script overwrite
+ROOT_DIR="$CUR_DIR"
+ROOT_ACTION="$ACTION"
+for pkg in $PKG_NAME; do
+    source $ROOT_DIR/packages/$pkg/ctrl $ROOT_ACTION
+done

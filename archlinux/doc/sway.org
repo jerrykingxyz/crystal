@@ -1,7 +1,0 @@
-// install sway
-// or install foot
-pacman -S sway alacritty
-
-// copy configs
-cp -rf $project/alacritty ~/.config/
-cp -rf $project/sway ~/.config/

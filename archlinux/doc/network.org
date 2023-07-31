@@ -24,3 +24,7 @@ pacman -S netctl dhcpcd dialog spa_supplicant
 
 # enable
 # netctl enable xxx
+
+# open dns server
+systemctl start systemd-resolver
+systemctl start systemd-timesyncd
