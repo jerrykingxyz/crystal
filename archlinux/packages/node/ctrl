@@ -18,6 +18,10 @@ if [ "$ACTION" = "user_setup" ]; then
     if [ ! -e $NODE_LIB ]; then
         mkdir $NODE_LIB
     fi
+    if [ -z "$npm_config_prefix" ]; then
+        export npm_config_prefix="$NODE_LIB"
+    fi
+    npm install -g prettier typescript typescript-language-server vscode-json-languageserver
 fi
 
 if [ "$ACTION" = "profile" ]; then
