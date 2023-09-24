@@ -1,11 +1,18 @@
 #!/bin/sh
 
+_encode_value() {
+    awk -v RS= '{gsub(/\n/,"\\\\n")}1' <<< $1
+}
+_decode_value() {
+    awk -v RS= '{gsub(/\\n/,"\n")}1' <<< $1
+}
+
 render_config() {
     local template_file=$1
     local var_file=$2
     awk -F"=" '
 NR==FNR {
-    a["__" $1 "__"]=$2
+    a["__" $1 "__"]=gensub(/\\n/,"\n","g",$2)
     next
 }
 {
@@ -19,7 +26,7 @@ NR==FNR {
 update_config_var() {
     local var_file=$1
     local key=$2
-    local value=$3
+    local value=$(_encode_value "$3")
     awk -F"=" -v k="$key" -v v="$value" '$1==k{print $1"="v;next} 1' $var_file > ./temp
     mv -f ./temp $var_file
 }
@@ -33,7 +40,7 @@ exist_config_var() {
 add_config_var() {
     local var_file=$1
     local key=$2
-    local value=$3
+    local value=$(_encode_value "$3")
     if [ -z "$(exist_config_var $var_file $key)" ]; then
         echo "$key=$value" >> $var_file
     else
@@ -53,7 +60,8 @@ del_config_var() {
 get_config_var() {
     local var_file=$1
     local key=$2
-    awk -F"=" -v k="$key" '$1==k{print $2}' $var_file
+    local value=$(awk -F"=" -v k="$key" '$1==k{print $2}' $var_file)
+    _decode_value "$value"
 }
 
 kill_with_process_name() {
