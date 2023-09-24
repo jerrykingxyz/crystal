@@ -95,18 +95,7 @@
       },
       {
         "type": "field",
-        "domain": [
-          "steam-api.com",
-          "steam-chat.com",
-          "steamcommunity.com",
-          "steamcontent.com",
-          "steamdeck.com",
-          "steamgames.com",
-          "steampowered.com",
-          "steamserver.net",
-          "steamstatic.com",
-          "steamusercontent.com"
-        ],
+        "domain": __force_proxy_domain__,
         "outboundTag": "proxy"
       },
       {
