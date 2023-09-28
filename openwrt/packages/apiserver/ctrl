@@ -16,7 +16,7 @@ SCRIPT_DIR="$CUR_DIR/scripts/"
 run_api_server() {
     local listen=$(get_config_var $CFG_FILE "listen")
     local token=$(get_config_var $CFG_FILE "token")
-    $CMD_FILE -t $token -l $listen $SCRIPT_DIR &
+    OPENWRT_DIR="$OPENWRT_DIR" $CMD_FILE -t $token -l $listen $SCRIPT_DIR &
 }
 
 if [ "$ACTION" = "setup" ]; then
@@ -46,6 +46,6 @@ if [ "$ACTION" = "config" ]; then
     update_config_var $CFG_FILE "$2" "$3"
 fi
 
-#if [ "$ACTION" = "remove" ]; then
-#    echo "remove"
-#fi
+if [ "$ACTION" = "remove" ]; then
+    rm "$CMD_FILE"
+fi

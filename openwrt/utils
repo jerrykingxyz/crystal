@@ -1,10 +1,10 @@
 #!/bin/sh
 
 _encode_value() {
-    awk -v RS= '{gsub(/\n/,"\\\\n")}1' <<< $1
+    echo "$1" | awk -v RS= '{gsub(/\n/,"\\\\n")}1'
 }
 _decode_value() {
-    awk -v RS= '{gsub(/\\n/,"\n")}1' <<< $1
+    echo "$1" | awk -v RS= '{gsub(/\\n/,"\n")}1'
 }
 
 render_config() {

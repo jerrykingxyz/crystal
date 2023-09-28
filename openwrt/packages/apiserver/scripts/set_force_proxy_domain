@@ -1,0 +1,8 @@
+#!/bin/sh
+
+XRAY_DIR=$OPENWRT_DIR/packages/xray
+
+$XRAY_DIR/ctrl config force_proxy_domain "$1"
+
+$XRAY_DIR/ctrl restart
+

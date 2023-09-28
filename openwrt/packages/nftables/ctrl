@@ -70,6 +70,6 @@ if [ "$ACTION" = "config" ]; then
     update_config_var $CFG_FILE "$2" "$3"
 fi
 
-if [ "$ACTION" = "remove" ]; then
-    echo "remove"
-fi
+#if [ "$ACTION" = "remove" ]; then
+#    echo "remove"
+#fi
