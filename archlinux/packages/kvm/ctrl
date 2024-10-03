@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e
+
+CUR_DIR=$(dirname "$(readlink -f -- "${BASH_SOURCE[0]}")")
+ARCHLINUX_DIR=$(dirname $(dirname $CUR_DIR))
+TEMP_DIR="$ARCHLINUX_DIR/temp_conf"
+source $ARCHLINUX_DIR/utils
+
+ACTION=$1
+
+if [ "$ACTION" = "root_setup" ]; then
+    pacman_install libvirt virt-install virt-viewer dmidecode dnsmasq iptables-nft qemu-desktop
+fi
+
+#if [ "$ACTION" = "user_setup" ]; then
+#    create_link "$CUR_DIR" ~/.config/alacritty
+#fi
+
+if [[ -z "$ACTION" || "$ACTION" = "start" ]]; then
+    systemctl start libvirtd.service
+    systemctl start virtlogd.service
+    #    modprobe kvm
+    #    virsh pool-define-as <name> dir - - - - <path>
+    #    virsh pool-start <name>
+    #    virt-install --name windows11 --memory 6144 --cdrom /home/jerry/download/os/win11.iso --disk pool=windows-pool,size=80 --boot uefi --network network=vm-net --graphics spice
+    #    TODO config network
+    
+fi
+
+#if [ "$ACTION" = "root_remove" ]; then
+#    pacman_remove alacritty
+#fi
+
+#if [ "$ACTION" = "user_remove" ]; then
+#    rm ~/.config/alacritty
+#fi

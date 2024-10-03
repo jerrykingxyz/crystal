@@ -14,7 +14,7 @@ if [ "$ACTION" = "root_setup" ]; then
 fi
 
 if [[ -z "$ACTION" || "$ACTION" = "start" ]]; then
-    chromium --ozone-platform-hint=auto --force-dark-mode
+    chromium --ozone-platform-hint=auto --force-dark-mode --enable-features=VaapiVideoDecodeLinuxGL
 fi
 
 if [ "$ACTION" = "root_remove" ]; then

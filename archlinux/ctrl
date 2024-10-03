@@ -18,6 +18,7 @@ if [ "$ACTION" = "user_setup" ]; then
     if [[ ! -f ~/.bashrc || -z $(grep "$REGISTER_PROFILE_CODE" ~/.bashrc) ]]; then
         # add command
         echo "$REGISTER_PROFILE_CODE" >> ~/.bashrc
+        echo "$REGISTER_PROFILE_CODE" >> ~/.bash_profile
     fi
 fi
 
