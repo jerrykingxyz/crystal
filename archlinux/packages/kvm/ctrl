@@ -25,6 +25,9 @@ if [[ -z "$ACTION" || "$ACTION" = "start" ]]; then
     #    virsh pool-start <name>
     #    virt-install --name windows11 --memory 6144 --cdrom /home/jerry/download/os/win11.iso --disk pool=windows-pool,size=80 --boot uefi --network network=vm-net --graphics spice
     #    TODO config network
+    #    virsh list --all // show all vm
+    #    virsh start windows11
+    #    virt-viewer
     
 fi
 
