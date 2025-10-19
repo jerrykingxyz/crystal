@@ -1,0 +1,136 @@
+{
+  "log": {
+    "loglevel": "none"
+  },
+  "inbounds": [
+    {
+      "port": 443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "<id>",
+            "flow": "xtls-rprx-vision",
+            "level": 0,
+            "email": "<email>"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 81,
+            "xver": 0
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+              "certificateFile": "/etc/letsencrypt/live/<domain>/fullchain.pem",
+              "keyFile": "/etc/letsencrypt/live/<domain>/privkey.pem"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "port": 3000,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "<id>",
+            "flow": "xtls-rprx-direct",
+            "level": 0,
+            "email": "<email>"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 81,
+            "xver": 0
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "serverName": "<domain>",
+          "certificates": [
+            {
+              "certificateFile": "/etc/letsencrypt/live/<domain>/fullchain.pem",
+              "keyFile": "/etc/letsencrypt/live/<domain>/privkey.pem"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "port": 8080,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "<id>",
+            "flow": "xtls-rprx-vision",
+            "level": 0,
+            "email": "<email>"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 81,
+            "xver": 0
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+              "certificateFile": "/etc/letsencrypt/live/<domain>/fullchain.pem",
+              "keyFile": "/etc/letsencrypt/live/<domain>/privkey.pem"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom"
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "none"
+        }
+      },
+      "tag": "refuse"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPOnDemand",
+    "rules": [
+      {
+        "type": "field",
+        "outboundTag": "refuse",
+        "domain": ["geosite:cn", "geosite:category-ads-all"]
+      },
+      {
+        "type": "field",
+        "outboundTag": "refuse",
+        "ip": ["geoip:cn", "geoip:private"]
+      }
+    ]
+  }
+}
