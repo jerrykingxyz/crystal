@@ -33,6 +33,37 @@ unset_as_forward_dnsmasq() {
     uci commit dhcp
 }
 
+clear_domains() {
+    while true; do
+        uci -q delete dhcp.@domain[-1] || break
+    done
+    uci commit dhcp
+}
+
+set_domains() {
+    local domains=$(get_config_var $CFG_FILE "domains" | tr -d '["]' | tr "," "\n")
+
+    echo "$domains" | while IFS= read -r domain; do
+        if [ ! -z "$domain" ]; then
+            uci -q add dhcp domain
+
+            params=$(echo "$domain" | awk '{print $1,$2}')
+            index=0
+            for item in $params; do
+                if [ $index = 0 ]; then
+                    # name
+                    uci -q set dhcp.@domain[-1].name="$item"
+                elif [ $index = 1 ]; then
+                    # ip
+                    uci -q set dhcp.@domain[-1].ip="$item"
+                fi
+                index=$((index+1))
+            done
+        fi
+    done
+    uci commit dhcp
+}
+
 if [ "$ACTION" = "setup" ]; then
     # install from github
     IPK_FILE="$TEMP_DIR/smartdns.ipk"
@@ -54,7 +85,9 @@ if [ "$ACTION" = "start" ]; then
     render_config $TEMPLATE_FILE $CFG_FILE > $OUTPUT_CFG_FILE
     smartdns -c $OUTPUT_CFG_FILE
     set_as_forward_dnsmasq
-    /etc/init.d/dnsmasq reload
+    clear_domains
+    set_domains
+    /etc/init.d/dnsmasq restart
     unset_as_forward_dnsmasq
 fi
 
@@ -64,7 +97,8 @@ fi
 
 if [ "$ACTION" = "stop" ]; then
     kill_with_process_name smartdns
-    /etc/init.d/dnsmasq reload
+    clear_domains
+    /etc/init.d/dnsmasq restart
 fi
 
 if [ "$ACTION" = "config" ]; then

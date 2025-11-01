@@ -15,15 +15,9 @@ clear_dhcp_host() {
         uci -q delete dhcp.@host[-1] || break
     done
     uci commit dhcp
-    /etc/init.d/dnsmasq restart
 }
 
-# if [ "$ACTION" = "setup" ]; then
-#     echo "setup"
-# fi
-
-if [ "$ACTION" = "start" ]; then
-    clear_dhcp_host
+set_dhcp_host() {
     while read line; do
         if [ ! -z "$line" ]; then
             uci -q add dhcp host
@@ -46,6 +40,15 @@ if [ "$ACTION" = "start" ]; then
         fi
     done < $CFG_FILE
     uci commit dhcp
+}
+
+# if [ "$ACTION" = "setup" ]; then
+#     echo "setup"
+# fi
+
+if [ "$ACTION" = "start" ]; then
+    clear_dhcp_host
+    set_dhcp_host
     /etc/init.d/dnsmasq restart
 fi
 
@@ -55,6 +58,7 @@ fi
 
 if [ "$ACTION" = "stop" ]; then
     clear_dhcp_host
+    /etc/init.d/dnsmasq restart
 fi
 
 if [ "$ACTION" = "config" ]; then
