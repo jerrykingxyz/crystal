@@ -1,0 +1,42 @@
+#!/bin/sh
+
+set -e
+
+CUR_DIR=$(dirname "$(readlink -f -- "$0")")
+OPENWRT_DIR=$(dirname $(dirname $CUR_DIR))
+TEMP_DIR="$OPENWRT_DIR/temp_conf"
+source $OPENWRT_DIR/utils
+
+ACTION=$1
+CFG_FILE="$CUR_DIR/config"
+TEMPLATE_FILE="$CUR_DIR/template.json"
+OUTPUT_CFG_FILE="$TEMP_DIR/vpn_config.json"
+
+if [ "$ACTION" = "setup" ]; then
+    # install from opkg
+    opkg update
+    opkg install xray-core
+    /etc/init.d/xray disable
+fi
+
+if [ "$ACTION" = "start" ]; then
+    render_config $TEMPLATE_FILE $CFG_FILE > $OUTPUT_CFG_FILE
+    xray run -c $OUTPUT_CFG_FILE &
+fi
+
+if [ "$ACTION" = "restart" ]; then
+    "$0" stop
+    "$0" start
+fi
+
+if [ "$ACTION" = "stop" ]; then
+    kill_with_process_name $OUTPUT_CFG_FILE
+fi
+
+if [ "$ACTION" = "config" ]; then
+    update_config_var $CFG_FILE "$2" "$3"
+fi
+
+if [ "$ACTION" = "remove" ]; then
+    opkg remove xray
+fi

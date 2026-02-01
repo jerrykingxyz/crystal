@@ -1,0 +1,55 @@
+{
+  "log": {
+    "access": "none",
+    "error": "none",
+    "loglevel": "none"
+  },
+  "inbounds": [
+    {
+      "listen": "::0",
+      "port": 5000,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "__user_id__",
+            "flow": "xtls-rprx-vision",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+              "certificateFile": "__certificate_path__",
+              "keyFile": "__key_path__"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "blackhole"
+    },
+    {
+      "protocol": "freedom",
+      "tag": "pass"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["192.168.0.0/16"],
+        "outboundTag": "pass"
+      }
+    ]
+  }
+}
