@@ -1,0 +1,4 @@
+user_id=abc
+certificate_path=/a/b/cert.crt
+key_path=/a/b/key.key
+
