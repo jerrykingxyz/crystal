@@ -39,7 +39,7 @@ if [ "$ACTION" = "restart" ]; then
 fi
 
 if [ "$ACTION" = "stop" ]; then
-    kill_with_process_name xray
+    kill_with_process_name $OUTPUT_CFG_FILE
 fi
 
 if [ "$ACTION" = "config" ]; then
