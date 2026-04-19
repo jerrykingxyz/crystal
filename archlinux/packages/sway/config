@@ -26,6 +26,9 @@ set $term alacritty
 # on the original workspace that the command was run on.
 set $menu dmenu_path | dmenu | xargs swaymsg exec --
 
+# run fcitx5
+exec --no-startup-id fcitx5 -d
+
 ### Custom configuration
 default_border pixel 1
 focus_follows_mouse no
