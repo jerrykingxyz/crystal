@@ -54,7 +54,7 @@
         "vnext": [
           {
             "address": "__server_ip__",
-            "port": 443,
+            "port": 8443,
             "users": [
               {
                 "id": "__server_user_id__",
@@ -68,10 +68,12 @@
       },
       "streamSettings": {
         "network": "tcp",
-        "security": "tls",
-        "tlsSettings": {
-          "serverName": "__server_hostname__",
-          "fingerprint": "chrome"
+        "security": "reality",
+        "realitySettings": {
+          "serverName": "www.microsoft.com",
+          "fingerprint": "chrome",
+          "password": "__reality_password__",
+          "shortId": "__reality_short_id__"
         }
       }
     },

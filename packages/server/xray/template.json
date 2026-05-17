@@ -43,7 +43,7 @@
         "clients": [
           {
             "id": "__server_user_id__",
-            "flow": "xtls-rprx-direct",
+            "flow": "xtls-rprx-vision",
             "level": 0,
             "email": "__server_email__"
           }
@@ -58,9 +58,8 @@
       },
       "streamSettings": {
         "network": "tcp",
-        "security": "xtls",
-        "xtlsSettings": {
-          "serverName": "__server_hostname__",
+        "security": "tls",
+        "tlsSettings": {
           "certificates": [
             {
               "certificateFile": "/etc/letsencrypt/live/__server_hostname__/fullchain.pem",
@@ -100,6 +99,31 @@
               "keyFile": "/etc/letsencrypt/live/__server_hostname__/privkey.pem"
             }
           ]
+        }
+      }
+    },
+    {
+      "port": 8443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "__server_user_id__",
+            "flow": "xtls-rprx-vision",
+            "level": 0,
+            "email": "__server_email__"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "target": "www.microsoft.com:443",
+          "serverNames": ["www.microsoft.com"],
+          "privateKey": "__reality_private_key__",
+          "shortIds": __reality_short_ids__
         }
       }
     }

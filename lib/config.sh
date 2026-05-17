@@ -1,28 +1,37 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# 读取配置值：get_config_var config domains。
-# 多行块会按原文返回，JSON 片段也不会被解析或转换。
-get_config_var() {
-    awk -F"=" -v target="$2" '
-function emit_value() {
-    if (current==target) {
-        print value
-        found=1
-    }
+if [ "${__CRYSTAL_CONFIG_SH_LOADED:-}" = "1" ]; then
+    return 0 2>/dev/null || exit 0
+fi
+__CRYSTAL_CONFIG_SH_LOADED=1
+
+_encode_value() {
+    echo "$1" | awk -v RS= '{ gsub(/\n/,"\\n") } 1'
 }
+
+_decode_value() {
+    echo "$1" | awk -v RS= '{ gsub(/\\n/,"\n") } 1'
+}
+
+# 读取配置文件为单行记录，方便沿用 key=value 风格处理。
+_read_config_vars() {
+    awk -F"=" '
 BEGIN {
     current=""
     value=""
-    found=0
 }
 $0=="" {
-    emit_value()
+    if (current!="") {
+        print current "=" value
+    }
     current=""
     value=""
     next
 }
 index($0,"=")>0 {
-    emit_value()
+    if (current!="") {
+        print current "=" value
+    }
     current=$1
     value=$0
     sub(/^[^=]*=/,"",value)
@@ -33,22 +42,31 @@ index($0,"=")>0 {
         print "config continuation line before key: " $0 > "/dev/stderr"
         exit 1
     }
-    if (value=="") {
-        value=$0
-    } else {
-        value=value "\n" $0
-    }
+    value=value "\\n" $0
 }
 END {
-    emit_value()
-    if (found==0) {
-        exit 1
+    if (current!="") {
+        print current "=" value
     }
 }' "$1"
 }
 
+# 读取配置值：get_config_var config domains。
+# 多行块会按原文返回，JSON 片段也不会被解析或转换。
+get_config_var() {
+    local value
+
+    value=$(
+        _read_config_vars "$1" |
+            awk -F"=" -v key="$2" '$1==key { print substr($0, index($0,"=")+1); found=1; exit } END { if (found!=1) exit 1 }'
+    ) || return 1
+
+    _decode_value "$value"
+}
+
 exist_config_var() {
-    get_config_var "$1" "$2" >/dev/null 2>&1
+    _read_config_vars "$1" |
+        awk -F"=" -v key="$2" '$1==key { found=1; exit } END { exit found!=1 }'
 }
 
 # 写入配置值：update_config_var config domains "$domains"。
@@ -56,57 +74,30 @@ exist_config_var() {
 update_config_var() {
     local var_file=$1
     local key=$2
-    local value=$3
+    local value
     local tmp_file="$var_file.tmp.$$"
 
-    if [ ! -f "$var_file" ]; then
-        touch "$var_file"
-    fi
+    value=$(_encode_value "$3")
 
-    awk -F"=" -v target="$key" -v new_value="$value" '
-function print_block() {
-    line_count=split(new_value, lines, "\n")
-    print target "=" lines[1]
-    for (i=2; i<=line_count; i++) {
-        print lines[i]
+    _read_config_vars "$var_file" |
+        awk -F"=" -v key="$key" -v value="$value" '
+$1==key {
+    if (updated!=1) {
+        print key "=" value
+        updated=1
     }
-}
-function is_key_line(line) {
-    return index(line,"=")>0
-}
-BEGIN {
-    updated=0
-    skipping=0
-}
-$0=="" {
-    if (skipping==1) {
-        skipping=0
-    }
-    print
-    next
-}
-is_key_line($0) {
-    if ($1==target) {
-        if (updated==0) {
-            print_block()
-            updated=1
-        }
-        skipping=1
-        next
-    }
-    skipping=0
-}
-skipping==1 {
     next
 }
 {
     print
 }
 END {
-    if (updated==0) {
-        print_block()
+    if (updated!=1) {
+        print key "=" value
     }
-}' "$var_file" > "$tmp_file"
+}' |
+        awk -v RS= '{ gsub(/\\n/,"\n") } 1' > "$tmp_file"
+
     mv -f "$tmp_file" "$var_file"
 }
 
@@ -122,34 +113,13 @@ del_config_var() {
     local tmp_file="$var_file.tmp.$$"
 
     if [ ! -f "$var_file" ]; then
-        return
+        return 0
     fi
 
-    awk -F"=" -v target="$key" '
-function is_key_line(line) {
-    return index(line,"=")>0
-}
-BEGIN {
-    skipping=0
-}
-$0=="" {
-    skipping=0
-    print
-    next
-}
-is_key_line($0) {
-    if ($1==target) {
-        skipping=1
-        next
-    }
-    skipping=0
-}
-skipping==1 {
-    next
-}
-{
-    print
-}' "$var_file" > "$tmp_file"
+    _read_config_vars "$var_file" |
+        awk -F"=" -v key="$key" '$1!=key { print }' |
+        awk -v RS= '{ gsub(/\\n/,"\n") } 1' > "$tmp_file"
+
     mv -f "$tmp_file" "$var_file"
 }
 
@@ -168,5 +138,5 @@ EOF
     expected='test.local 127.0.0.1
 router.local 192.168.1.1'
 
-    assert_eq "get_config_var smoke test" "$actual" "$expected"
+    assert_eq "$actual" "$expected"
 fi
