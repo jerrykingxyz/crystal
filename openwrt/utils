@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-. "$OPENWRT_DIR/../lib/config.sh"
-. "$OPENWRT_DIR/../lib/render.sh"
+UTILS_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+. "$UTILS_DIR/../lib/config.sh"
+. "$UTILS_DIR/../lib/render.sh"
 
 kill_with_process_name() {
     local name=$1

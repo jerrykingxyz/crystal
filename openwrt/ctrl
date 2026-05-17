@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -e
 
@@ -22,5 +22,5 @@ if [ "$ACTION" = "remove" ]; then
 fi
 
 for pkg in $PKG_NAME; do
-    sh $CUR_DIR/packages/$pkg/ctrl $ACTION
+    bash "$CUR_DIR/packages/$pkg/ctrl" "$ACTION"
 done

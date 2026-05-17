@@ -1,13 +1,17 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# 断言两个字符串相等：assert_eq "case name" "$actual" "$expected"。
+if [ "${__CRYSTAL_TEST_SH_LOADED:-}" = "1" ]; then
+    return 0 2>/dev/null || exit 0
+fi
+__CRYSTAL_TEST_SH_LOADED=1
+
+# 断言两个字符串相等：assert_eq "$actual" "$expected"。
 assert_eq() {
-    local name=$1
-    local actual=$2
-    local expected=$3
+    local actual=$1
+    local expected=$2
 
     if [ "$actual" != "$expected" ]; then
-        echo "$name failed" >&2
+        echo "assert_eq failed" >&2
         echo "expected:" >&2
         echo "$expected" >&2
         echo "actual:" >&2

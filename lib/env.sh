@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "${__CRYSTAL_ENV_SH_LOADED:-}" = "1" ]; then
+    return 0 2>/dev/null || exit 0
+fi
+__CRYSTAL_ENV_SH_LOADED=1
 
 # 初始化包路径：init_pkg_env "$0"。
 # 适用于 packages/<platform>/<package>/ctrl 这种新包结构。
@@ -15,7 +20,7 @@ if [ "${CRYSTAL_TEST:-}" = "1" ]; then
 
     init_pkg_env packages/server/xray/ctrl
 
-    assert_eq "init_pkg_env pkg name" "$PKG_NAME" "xray"
-    assert_eq "init_pkg_env platform name" "$PLATFORM_NAME" "server"
-    assert_eq "init_pkg_env temp dir" "$TEMP_DIR" "$ROOT_DIR/temp/server/xray"
+    assert_eq "$PKG_NAME" "xray"
+    assert_eq "$PLATFORM_NAME" "server"
+    assert_eq "$TEMP_DIR" "$ROOT_DIR/temp/server/xray"
 fi
