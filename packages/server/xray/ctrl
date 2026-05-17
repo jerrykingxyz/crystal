@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "$0"
+. "$ROOT_DIR/lib/config.sh"
+. "$ROOT_DIR/lib/render.sh"
+
+ACTION=$1
+CFG_FILE="$PKG_DIR/config"
+TEMPLATE_FILE="$PKG_DIR/template.json"
+OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
+
+case "$ACTION" in
+    start|restart)
+        mkdir -p "$TEMP_DIR"
+        render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
+        exec xray -c "$OUTPUT_CFG_FILE"
+        ;;
+    config)
+        update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
+        ;;
+    *)
+        false
+        ;;
+esac

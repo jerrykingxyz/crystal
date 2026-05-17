@@ -1,68 +1,7 @@
 #!/bin/sh
 
-_encode_value() {
-    echo "$1" | awk -v RS= '{gsub(/\n/,"\\\\n")}1'
-}
-_decode_value() {
-    echo "$1" | awk -v RS= '{gsub(/\\n/,"\n")}1'
-}
-
-render_config() {
-    local template_file=$1
-    local var_file=$2
-    awk -F"=" '
-NR==FNR {
-    a["__" $1 "__"]=gensub(/\\n/,"\n","g",$2)
-    next
-}
-{
-  for (key in a) {
-    gsub(key, a[key])
-  }
-  print
-}' $var_file $template_file
-}
-
-update_config_var() {
-    local var_file=$1
-    local key=$2
-    local value=$(_encode_value "$3")
-    awk -F"=" -v k="$key" -v v="$value" '$1==k{print $1"="v;next} 1' $var_file > ./temp
-    mv -f ./temp $var_file
-}
-
-exist_config_var() {
-    local var_file=$1
-    local key=$2
-    awk -F"=" -v k="$key" '$1==k{print "1"}' $var_file
-}
-
-add_config_var() {
-    local var_file=$1
-    local key=$2
-    local value=$(_encode_value "$3")
-    if [ -z "$(exist_config_var $var_file $key)" ]; then
-        echo "$key=$value" >> $var_file
-    else
-        update_config_var $var_file $key $value
-    fi
-}
-
-del_config_var() {
-    local var_file=$1
-    local key=$2
-    if [ ! -z "$(exist_config_var $var_file $key)" ]; then
-        awk -F"=" -v k="$key" '$1==k{next} 1' $var_file > ./temp
-        mv -f ./temp $var_file
-    fi
-}
-
-get_config_var() {
-    local var_file=$1
-    local key=$2
-    local value=$(awk -F"=" -v k="$key" '$1==k{print $2}' $var_file)
-    _decode_value "$value"
-}
+. "$OPENWRT_DIR/../lib/config.sh"
+. "$OPENWRT_DIR/../lib/render.sh"
 
 kill_with_process_name() {
     local name=$1

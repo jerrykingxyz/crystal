@@ -1,1 +1,3 @@
 openwrt/temp_conf/*
+temp/*
+packages/server/xray/config
