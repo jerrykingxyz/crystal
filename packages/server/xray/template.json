@@ -123,7 +123,7 @@
           "target": "www.microsoft.com:443",
           "serverNames": ["www.microsoft.com"],
           "privateKey": "__reality_private_key__",
-          "shortIds": __reality_short_ids__
+          "shortIds": [""]
         }
       }
     }

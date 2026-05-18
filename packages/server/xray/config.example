@@ -3,4 +3,3 @@ server_email=user@example.com
 server_hostname=example.com
 reality_private_key=__add_when_setup__
 reality_public_key=__add_when_setup__
-reality_short_ids=["0123456789abcdef"]

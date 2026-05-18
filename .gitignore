@@ -1,3 +1,5 @@
 openwrt/temp_conf/*
 temp/*
 packages/server/xray/config
+packages/macos/xray/config
+packages/macos/xray/runtime/*

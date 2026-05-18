@@ -14,7 +14,7 @@ render_config() {
     local template_file=$1
     local var_file=$2
 
-    _read_config_vars "$var_file" |
+    read_config_vars "$var_file" |
     awk -F"=" '
 NR==FNR {
     value=substr($0,index($0,"=")+1)

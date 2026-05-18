@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/config.sh"
+. "$ROOT_DIR/lib/render.sh"
+
+ACTION=$1
+CFG_FILE="$PKG_DIR/config"
+TEMPLATE_FILE="$PKG_DIR/template.json"
+OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
+XRAY_DIR="$PKG_DIR/runtime"
+NETWORK_SERVICE="Wi-Fi"
+
+enable_proxy() {
+    networksetup -setwebproxy "$NETWORK_SERVICE" 127.0.0.1 10801
+    networksetup -setsecurewebproxy "$NETWORK_SERVICE" 127.0.0.1 10801
+    networksetup -setsocksfirewallproxy "$NETWORK_SERVICE" 127.0.0.1 10800
+    networksetup -setwebproxystate "$NETWORK_SERVICE" on
+    networksetup -setsecurewebproxystate "$NETWORK_SERVICE" on
+    networksetup -setsocksfirewallproxystate "$NETWORK_SERVICE" on
+}
+
+disable_proxy() {
+    networksetup -setwebproxystate "$NETWORK_SERVICE" off
+    networksetup -setsecurewebproxystate "$NETWORK_SERVICE" off
+    networksetup -setsocksfirewallproxystate "$NETWORK_SERVICE" off
+}
+
+case "$ACTION" in
+    user_setup)
+        case "$(uname -m)" in
+            arm64|aarch64)
+                xray_asset="Xray-macos-arm64-v8a.zip"
+                ;;
+            x86_64|amd64)
+                xray_asset="Xray-macos-64.zip"
+                ;;
+            *)
+                false
+                ;;
+        esac
+
+        mkdir -p "$XRAY_DIR"
+        curl -L "https://github.com/XTLS/Xray-core/releases/latest/download/$xray_asset" -o "$XRAY_DIR/xray.zip"
+        unzip -o "$XRAY_DIR/xray.zip" -d "$XRAY_DIR"
+        rm -f "$XRAY_DIR/xray.zip"
+        chmod +x "$XRAY_DIR/xray"
+        ;;
+    start)
+        mkdir -p "$TEMP_DIR"
+        render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
+
+        enable_proxy
+        XRAY_LOCATION_ASSET="$XRAY_DIR" "$XRAY_DIR/xray" run -c "$OUTPUT_CFG_FILE" &
+        ;;
+    stop)
+        pids=$(pgrep -f "$OUTPUT_CFG_FILE" 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            kill $pids || true
+        fi
+
+        disable_proxy
+        ;;
+    run)
+        mkdir -p "$TEMP_DIR"
+        render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
+
+        enable_proxy
+        trap 'disable_proxy' EXIT
+        XRAY_LOCATION_ASSET="$XRAY_DIR" "$XRAY_DIR/xray" run -c "$OUTPUT_CFG_FILE"
+        ;;
+    restart)
+        "$0" stop
+        "$0" start
+        ;;
+    config)
+        update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
+        ;;
+    *)
+        false
+        ;;
+esac
