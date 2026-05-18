@@ -5,7 +5,7 @@ if [ "${__CRYSTAL_ENV_SH_LOADED:-}" = "1" ]; then
 fi
 __CRYSTAL_ENV_SH_LOADED=1
 
-# 初始化包路径：init_pkg_env "$0"。
+# 初始化包路径：init_pkg_env "${BASH_SOURCE[0]}"。
 # 适用于 packages/<platform>/<package>/ctrl 这种新包结构。
 init_pkg_env() {
     PKG_DIR=$(CDPATH= cd -- "$(dirname -- "$1")" && pwd)

@@ -2,10 +2,10 @@
 
 set -e
 
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 . "$SCRIPT_DIR/../../../lib/env.sh"
-init_pkg_env "$0"
+init_pkg_env "${BASH_SOURCE[0]}"
 . "$ROOT_DIR/lib/config.sh"
 . "$ROOT_DIR/lib/render.sh"
 

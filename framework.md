@@ -51,6 +51,7 @@ key2=value2
 - `start`：将当前包配置应用到运行环境。如果包需要生成运行时文件，`start` 可以先 render 再启动或刷新服务。
 - `stop`：停止或撤销 `start` 产生的运行态影响。
 - `restart`：重启包运行态。默认可以理解为 `stop` 后再 `start`，但包可以按自身需要实现。
+- `run`：前台运行包的运行态，阻塞当前终端，退出时结束本次前台运行。
 - `config key value`：更新包自己的本地配置源。
 - `root_remove`：撤销 `root_setup` 产生的系统级配置。
 - `user_remove`：撤销 `user_setup` 产生的用户级配置。

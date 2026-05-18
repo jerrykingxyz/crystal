@@ -13,8 +13,8 @@ _decode_value() {
     echo "$1" | awk -v RS= '{ gsub(/\\n/,"\n") } 1'
 }
 
-# 读取配置文件为单行记录，方便沿用 key=value 风格处理。
-_read_config_vars() {
+# 读取配置文件为单行记录：read_config_vars config。
+read_config_vars() {
     awk -F"=" '
 BEGIN {
     current=""
@@ -57,7 +57,7 @@ get_config_var() {
     local value
 
     value=$(
-        _read_config_vars "$1" |
+        read_config_vars "$1" |
             awk -F"=" -v key="$2" '$1==key { print substr($0, index($0,"=")+1); found=1; exit } END { if (found!=1) exit 1 }'
     ) || return 1
 
@@ -65,7 +65,7 @@ get_config_var() {
 }
 
 exist_config_var() {
-    _read_config_vars "$1" |
+    read_config_vars "$1" |
         awk -F"=" -v key="$2" '$1==key { found=1; exit } END { exit found!=1 }'
 }
 
@@ -79,7 +79,7 @@ update_config_var() {
 
     value=$(_encode_value "$3")
 
-    _read_config_vars "$var_file" |
+    read_config_vars "$var_file" |
         awk -F"=" -v key="$key" -v value="$value" '
 $1==key {
     if (updated!=1) {
@@ -116,7 +116,7 @@ del_config_var() {
         return 0
     fi
 
-    _read_config_vars "$var_file" |
+    read_config_vars "$var_file" |
         awk -F"=" -v key="$key" '$1!=key { print }' |
         awk -v RS= '{ gsub(/\\n/,"\n") } 1' > "$tmp_file"
 
