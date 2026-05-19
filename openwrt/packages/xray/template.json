@@ -54,10 +54,10 @@
         "vnext": [
           {
             "address": "__server_ip__",
-            "port": 8443,
+            "port": 443,
             "users": [
               {
-                "id": "__server_user_id__",
+                "id": "__user_id__",
                 "flow": "xtls-rprx-vision",
                 "encryption": "none",
                 "level": 0
@@ -70,10 +70,10 @@
         "network": "tcp",
         "security": "reality",
         "realitySettings": {
-          "serverName": "www.microsoft.com",
+          "serverName": "__domain__",
           "fingerprint": "chrome",
-          "password": "__reality_password__",
-          "shortId": "__reality_short_id__"
+          "password": "__public_key__",
+          "shortId": ""
         }
       }
     },
