@@ -1,7 +1,7 @@
 server_ip=1.1.1.1
-server_user_id=abc
-reality_password=__add_when_setup__
-reality_short_id=0123456789abcdef
+user_id=abc
+domain=www.microsoft.com
+public_key=replace_with_server_public_key
 force_proxy_domain=["steam-api.com","steam-chat.com","steamcommunity.com","steamcontent.com","steamdeck.com","steamgames.com","steampowered.com","steamserver.net","steamstatic.com","steamusercontent.com"]
 geo_ip_file=__add_when_setup__
 geo_site_file=__add_when_setup__
