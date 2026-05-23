@@ -1,3 +1,4 @@
 proxy_source_ips=192.168.226.0/24
-proxy_address=127.0.0.1:1085
+xray_dns_address=127.0.0.1:5353
+xray_tproxy_address=127.0.0.1:1085
 table_name=__add_when_setup__

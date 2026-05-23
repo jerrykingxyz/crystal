@@ -14,7 +14,7 @@
         "domains": ["geosite:gfw",__proxy_domains__],
         "skipFallback": true
       },
-      __upstream_dns_servers__
+      "127.0.0.1"
     ],
     "disableFallbackIfMatch": true,
     "queryStrategy": "UseIPv4"
@@ -32,7 +32,13 @@
       "settings": {
         "address": "8.8.8.8",
         "port": 53,
-        "network": "tcp,udp"
+        "network": "tcp,udp",
+        "followRedirect": true
+      },
+      "streamSettings": {
+        "sockopt": {
+          "tproxy": "tproxy"
+        }
       }
     },
     {

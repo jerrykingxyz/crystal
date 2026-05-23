@@ -11,24 +11,6 @@ source "$ROOT_DIR/lib/config.sh"
 ACTION=${1:?}
 CFG_FILE="$PKG_DIR/config"
 
-set_dnsmasq_forward() {
-    local forward_addr=$(get_config_var "$CFG_FILE" "forward_addr")
-    uci -q delete dhcp.@dnsmasq[0].server || true
-    uci -q add_list dhcp.@dnsmasq[0].server="$forward_addr"
-    uci -q set dhcp.@dnsmasq[0].noresolv=1
-    uci -q set dhcp.@dnsmasq[0].rebind_protection=0
-    uci -q set dhcp.@dnsmasq[0].domainneeded=0
-    uci commit dhcp
-}
-
-unset_dnsmasq_forward() {
-    uci -q delete dhcp.@dnsmasq[0].server || true
-    uci -q delete dhcp.@dnsmasq[0].noresolv || true
-    uci -q set dhcp.@dnsmasq[0].rebind_protection=1
-    uci -q set dhcp.@dnsmasq[0].domainneeded=1
-    uci commit dhcp
-}
-
 clear_domains() {
     while true; do
         uci -q delete dhcp.@domain[-1] || break
@@ -56,13 +38,11 @@ case "$ACTION" in
         opkg remove smartdns || true
         ;;
     start)
-        set_dnsmasq_forward
         clear_domains
         set_domains
         /etc/init.d/dnsmasq restart
         ;;
     stop)
-        unset_dnsmasq_forward
         clear_domains
         /etc/init.d/dnsmasq restart
         ;;
