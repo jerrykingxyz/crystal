@@ -2,5 +2,5 @@ server_ip=1.1.1.1
 user_id=abc
 domain=www.microsoft.com
 public_key=replace_with_server_public_key
-proxy_domains=["steam-api.com","steam-chat.com","steamcommunity.com","steamcontent.com","steamdeck.com","steamgames.com","steampowered.com","steamserver.net","steamstatic.com","steamusercontent.com"]
+proxy_domains="steam-api.com","steam-chat.com","steamcommunity.com","steamcontent.com","steamdeck.com","steamgames.com","steampowered.com","steamserver.net","steamstatic.com","steamusercontent.com"
 upstream_dns_servers="119.29.29.29","223.5.5.5"

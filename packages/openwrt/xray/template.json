@@ -11,11 +11,8 @@
     "servers": [
       {
         "address": "fakedns",
-        "domains": ["geosite:gfw"]
-      },
-      {
-        "address": "fakedns",
-        "domains": __proxy_domains__
+        "domains": ["geosite:gfw",__proxy_domains__],
+        "skipFallback": true
       },
       __upstream_dns_servers__
     ],
@@ -56,9 +53,19 @@
           "tproxy": "tproxy"
         }
       }
+    },
+    {
+      "tag": "http-in",
+      "listen": "127.0.0.1",
+      "port": 1087,
+      "protocol": "http"
     }
   ],
   "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom"
+    },
     {
       "tag": "proxy",
       "protocol": "vless",
@@ -101,6 +108,17 @@
         "type": "field",
         "inboundTag": ["dns-in"],
         "outboundTag": "dns-out"
+      },
+      {
+        "type": "field",
+        "inboundTag": ["all-in"],
+        "outboundTag": "proxy"
+      },
+      {
+        "type": "field",
+        "inboundTag": ["http-in"],
+        "domain": ["geosite:gfw",__proxy_domains__],
+        "outboundTag": "proxy"
       }
     ]
   }
