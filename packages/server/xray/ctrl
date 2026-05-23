@@ -25,7 +25,7 @@ case "$ACTION" in
 
         # 按行匹配 key，再从冒号后取值，兼容 Xray 字段名变化。
         while IFS= read -r item; do
-            key=$(printf '%s\n' "${item%%:*}" | tr '[:upper:]' '[:lower:]')
+            key=$(printf '%s\n' "${item%%:*}" | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')
             value=$(printf '%s\n' "${item#*:}" | sed 's/^[[:space:]]*//')
 
             case "$key" in
