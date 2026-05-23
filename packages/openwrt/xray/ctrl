@@ -12,26 +12,8 @@ init_pkg_env "${BASH_SOURCE[0]}"
 ACTION=${1:?}
 CFG_FILE="$PKG_DIR/config"
 TEMPLATE_FILE="$PKG_DIR/template.json"
-RUNTIME_CFG_FILE="$TEMP_DIR/config"
 OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
 GEO_SITE_FILE="$TEMP_DIR/geosite.dat"
-RESOLV_FILE="/tmp/resolv.conf.d/resolv.conf.auto"
-
-detect_upstream_dns_servers() {
-    local result=""
-    if [ -f "$RESOLV_FILE" ]; then
-        while read -r type server; do
-            if [ "$type" = "nameserver" ] && [[ "$server" == *.* ]] && [[ "$server" != 127.* ]] && [ "$server" != "0.0.0.0" ]; then
-                if [ -n "$result" ]; then
-                    result="$result,"
-                fi
-                result="$result\"$server\""
-            fi
-        done < "$RESOLV_FILE"
-    fi
-
-    echo "$result"
-}
 
 case "$ACTION" in
     root_setup)
@@ -47,12 +29,7 @@ case "$ACTION" in
         if [ -n "$pids" ]; then
             kill $pids || true
         fi
-        cp "$CFG_FILE" "$RUNTIME_CFG_FILE"
-        upstream_dns_servers=$(detect_upstream_dns_servers)
-        if [ -n "$upstream_dns_servers" ]; then
-            update_config_var "$RUNTIME_CFG_FILE" "upstream_dns_servers" "$upstream_dns_servers"
-        fi
-        render_config "$TEMPLATE_FILE" "$RUNTIME_CFG_FILE" > "$OUTPUT_CFG_FILE"
+        render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
         XRAY_LOCATION_ASSET="$TEMP_DIR" xray run -c "$OUTPUT_CFG_FILE" &
         ;;
     stop)
