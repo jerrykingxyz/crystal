@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/config.sh"
+. "$ROOT_DIR/lib/render.sh"
+
+ACTION=${1:?}
+CFG_FILE="$PKG_DIR/config"
+TEMPLATE_FILE="$PKG_DIR/template.json"
+RUNTIME_CFG_FILE="$TEMP_DIR/config"
+OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
+GEO_SITE_FILE="$TEMP_DIR/geosite.dat"
+RESOLV_FILE="/tmp/resolv.conf.d/resolv.conf.auto"
+
+detect_upstream_dns_servers() {
+    local result=""
+    if [ -f "$RESOLV_FILE" ]; then
+        while read -r type server; do
+            if [ "$type" = "nameserver" ] && [[ "$server" == *.* ]] && [[ "$server" != 127.* ]] && [ "$server" != "0.0.0.0" ]; then
+                if [ -n "$result" ]; then
+                    result="$result,"
+                fi
+                result="$result\"$server\""
+            fi
+        done < "$RESOLV_FILE"
+    fi
+
+    echo "$result"
+}
+
+case "$ACTION" in
+    root_setup)
+        mkdir -p "$TEMP_DIR"
+        opkg update
+        opkg install xray-core
+        /etc/init.d/xray disable
+        wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -O "$GEO_SITE_FILE"
+        ;;
+    start)
+        mkdir -p "$TEMP_DIR"
+        pids=$(pgrep -f "$OUTPUT_CFG_FILE" 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            kill $pids || true
+        fi
+        cp "$CFG_FILE" "$RUNTIME_CFG_FILE"
+        upstream_dns_servers=$(detect_upstream_dns_servers)
+        if [ -n "$upstream_dns_servers" ]; then
+            update_config_var "$RUNTIME_CFG_FILE" "upstream_dns_servers" "$upstream_dns_servers"
+        fi
+        render_config "$TEMPLATE_FILE" "$RUNTIME_CFG_FILE" > "$OUTPUT_CFG_FILE"
+        XRAY_LOCATION_ASSET="$TEMP_DIR" xray run -c "$OUTPUT_CFG_FILE" &
+        ;;
+    stop)
+        pids=$(pgrep -f "$OUTPUT_CFG_FILE" 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            kill $pids || true
+        fi
+        ;;
+    restart)
+        "$0" stop
+        "$0" start
+        ;;
+    config)
+        update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
+        ;;
+    root_remove)
+        "$0" stop
+        opkg remove xray-core || true
+        ;;
+    *)
+        false
+        ;;
+esac

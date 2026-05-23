@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+source "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+source "$ROOT_DIR/lib/config.sh"
+
+ACTION=${1:?}
+CFG_FILE="$PKG_DIR/config"
+TAR_FILE="$TEMP_DIR/script-server.tar.gz"
+CMD_FILE="$TEMP_DIR/script-server"
+API_SCRIPT_DIR="$PKG_DIR/scripts/"
+
+case "$ACTION" in
+    root_setup)
+        mkdir -p "$TEMP_DIR"
+        filename="script-server-0.0.1-$(uname -m)-unknown-linux-musl"
+        wget "https://github.com/jerrykingxyz/script-server/releases/download/0.0.1/$filename.tar.gz" -O "$TAR_FILE"
+        tar -zxf "$TAR_FILE" -C "$TEMP_DIR"
+        cp -f "$TEMP_DIR/$filename/script-server" "$CMD_FILE"
+        rm -r "$TEMP_DIR/$filename"
+        chmod +x "$CMD_FILE"
+        ;;
+    start)
+        listen=$(get_config_var "$CFG_FILE" "listen")
+        token=$(get_config_var "$CFG_FILE" "token")
+        ROOT_DIR="$ROOT_DIR" "$CMD_FILE" -t "$token" -l "$listen" "$API_SCRIPT_DIR" &
+        ;;
+    stop)
+        pids=$(pgrep -f "$CMD_FILE" 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            kill $pids || true
+        fi
+        ;;
+    restart)
+        "$0" stop
+        "$0" start
+        ;;
+    config)
+        update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
+        ;;
+    root_remove)
+        rm -f "$CMD_FILE"
+        ;;
+    *)
+        false
+        ;;
+esac

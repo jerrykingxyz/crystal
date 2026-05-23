@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+source "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+source "$ROOT_DIR/lib/config.sh"
+
+ACTION=${1:?}
+CFG_FILE="$PKG_DIR/config"
+
+clear_dhcp_host() {
+    while true; do
+        uci -q delete dhcp.@host[-1] || break
+    done
+    uci commit dhcp
+}
+
+set_dhcp_host() {
+    while IFS= read -r line; do
+        if [ -n "$line" ]; then
+            uci -q add dhcp host
+            uci -q set dhcp.@host[-1].dns='1'
+            name=${line%%=*}
+            host=${line#*=}
+            ip=${host%%/*}
+            mac=${host#*/}
+            uci -q set dhcp.@host[-1].name="$name"
+            uci -q set dhcp.@host[-1].ip="$ip"
+            uci -q set dhcp.@host[-1].mac="$mac"
+        fi
+    done < "$CFG_FILE"
+    uci commit dhcp
+}
+
+case "$ACTION" in
+    root_setup|root_remove)
+        ;;
+    start)
+        clear_dhcp_host
+        set_dhcp_host
+        /etc/init.d/dnsmasq restart
+        ;;
+    stop)
+        clear_dhcp_host
+        /etc/init.d/dnsmasq restart
+        ;;
+    restart)
+        "$0" start
+        ;;
+    config)
+        if [ -z "${3:-}" ]; then
+            del_config_var "$CFG_FILE" "${2:?}"
+        else
+            update_config_var "$CFG_FILE" "${2:?}" "$3"
+        fi
+        ;;
+    *)
+        false
+        ;;
+esac

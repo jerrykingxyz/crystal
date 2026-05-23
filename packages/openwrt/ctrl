@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+set -e
+
+PLATFORM_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$PLATFORM_DIR/../.." && pwd)
+DEFAULT_PACKAGES="xray nftables dhcp dns vpn apiserver"
+REVERSE_PACKAGES="apiserver vpn dns dhcp nftables xray"
+ACTION=${1:?}
+shift
+
+select_packages() {
+    local action=$1
+    shift
+
+    if [ "$#" -gt 0 ]; then
+        echo "$*"
+    elif [ "$action" = "stop" ] || [ "$action" = "root_remove" ]; then
+        echo "$REVERSE_PACKAGES"
+    else
+        echo "$DEFAULT_PACKAGES"
+    fi
+}
+
+package_supports_action() {
+    local pkg=$1
+    local action=$2
+
+    grep -Eq "(^|[[:space:]\|])$action(\)|\|)" "$PLATFORM_DIR/$pkg/ctrl"
+}
+
+run_package() {
+    local pkg=$1
+    local action=$2
+    shift 2
+
+    if [ ! -f "$PLATFORM_DIR/$pkg/ctrl" ]; then
+        echo "unknown openwrt package: $pkg" >&2
+        return 1
+    fi
+
+    if ! package_supports_action "$pkg" "$action"; then
+        return 2
+    fi
+
+    bash "$PLATFORM_DIR/$pkg/ctrl" "$action" "$@"
+}
+
+run_packages() {
+    local action=$1
+    local ran=0
+    local status
+    shift
+
+    for pkg in "$@"; do
+        if run_package "$pkg" "$action"; then
+            ran=1
+        else
+            status=$?
+            if [ "$status" != "2" ]; then
+                return "$status"
+            fi
+        fi
+    done
+
+    [ "$ran" = "1" ]
+}
+
+case "$ACTION" in
+    config)
+        pkg=${1:?}
+        shift
+        if [ ! -f "$PLATFORM_DIR/$pkg/ctrl" ]; then
+            echo "unknown openwrt package: $pkg" >&2
+            false
+        fi
+        bash "$PLATFORM_DIR/$pkg/ctrl" "$ACTION" "$@"
+        ;;
+    root_setup)
+        rm -f /etc/init.d/crystal
+        ln -s "$PLATFORM_DIR/crystal" /etc/init.d/crystal
+        run_packages "$ACTION" $(select_packages "$ACTION" "$@")
+        ;;
+    root_remove)
+        run_packages "$ACTION" $(select_packages "$ACTION" "$@")
+        rm -f /etc/init.d/crystal
+        ;;
+    restart)
+        run_packages stop $(select_packages stop "$@")
+        run_packages start $(select_packages start "$@")
+        ;;
+    *)
+        run_packages "$ACTION" $(select_packages "$ACTION" "$@")
+        ;;
+esac

@@ -11,6 +11,7 @@ crystal/
   temp/
   packages/
     <platform>/
+      ctrl
       <package>/
         ctrl
         config
@@ -19,6 +20,8 @@ crystal/
 
 - `packages/<platform>/<package>` 是主要包结构。
 - `platform` 表示运行目标，例如 `openwrt`、`archlinux`、`macos` 或 `server`。
+- 根目录 `ctrl` 根据当前环境选择平台入口；需要手动指定时使用 `CRYSTAL_PLATFORM=<platform>`。
+- `packages/<platform>/ctrl` 是平台入口，负责批量分发本平台包，并承载必要的平台级动作。
 - `temp/<platform>/<package>` 存放运行时生成文件。
 - `lib/` 用于存放已经复用的公共 shell helper，例如 `lib/env.sh`、`lib/config.sh` 和 `lib/render.sh`。
 
@@ -44,6 +47,8 @@ key2=value2
 
 每个包保留自己的 `ctrl` 脚本。包可以只实现自己需要的 action，但 action 名称应遵循下面的语义。
 
+- 根入口和平台入口使用 `ctrl <action> [package...]` 分发普通 action；不指定 package 时表示全部包。
+- 平台入口的配置更新使用 `ctrl config <package> <key> <value>`。
 - 包脚本不内置 usage 文案；支持的 action 以文档为准，未知 action 直接失败。
 - `root_setup` 和 `user_setup` 应支持多次运行；二次运行应刷新依赖或覆盖生成物。
 - `root_setup`：需要 root 权限的准备工作，例如安装依赖包、写系统服务或修改系统网络配置。
@@ -66,7 +71,7 @@ key2=value2
 
 ## 包环境
 
-新包结构中的 `ctrl` 可以通过 `init_pkg_env "$0"` 初始化路径变量：
+新包结构中的 `ctrl` 可以通过 `init_pkg_env "${BASH_SOURCE[0]}"` 初始化路径变量：
 
 - `PKG_DIR`：当前包目录。
 - `PKG_NAME`：当前包名。

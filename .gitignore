@@ -1,5 +1,6 @@
-openwrt/temp_conf/*
-temp/*
-packages/server/xray/config
-packages/macos/xray/config
-packages/macos/xray/runtime/*
+# 运行时生成文件
+temp/
+
+# 包本地配置和包内运行目录
+packages/*/*/config
+packages/*/*/runtime/

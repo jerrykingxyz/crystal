@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -e
+
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+detect_platform() {
+    if [ -n "${CRYSTAL_PLATFORM:-}" ]; then
+        echo "$CRYSTAL_PLATFORM"
+        return
+    fi
+
+    case "$(uname -s)" in
+        Darwin)
+            echo "macos"
+            ;;
+        Linux)
+            if [ -f /etc/openwrt_release ]; then
+                echo "openwrt"
+            elif [ -f /etc/arch-release ]; then
+                echo "archlinux"
+            else
+                echo "server"
+            fi
+            ;;
+        *)
+            false
+            ;;
+    esac
+}
+
+PLATFORM_NAME=$(detect_platform)
+PLATFORM_CTRL="$ROOT_DIR/packages/$PLATFORM_NAME/ctrl"
+
+if [ ! -f "$PLATFORM_CTRL" ]; then
+    false
+fi
+
+bash "$PLATFORM_CTRL" "$@"

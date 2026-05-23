@@ -1,0 +1,54 @@
+{
+  "log": {
+    "access": "none",
+    "error": "none",
+    "loglevel": "none"
+  },
+  "inbounds": [
+    {
+      "listen": "::0",
+      "port": 5000,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "__user_id__",
+            "flow": "xtls-rprx-vision",
+            "email": "__email__",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "target": "__domain__:443",
+          "serverNames": ["__domain__"],
+          "privateKey": "__private_key__",
+          "shortIds": [""]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "blackhole"
+    },
+    {
+      "protocol": "freedom",
+      "tag": "pass"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["192.168.0.0/16"],
+        "outboundTag": "pass"
+      }
+    ]
+  }
+}
