@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-source $OPENWRT_DIR/utils
-XRAY_DIR=$OPENWRT_DIR/packages/xray
-
-echo "$(get_config_var $XRAY_DIR/config force_proxy_domain)"

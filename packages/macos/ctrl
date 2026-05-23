@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -e
+
+PLATFORM_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+ACTION=${1:?}
+shift
+
+run_package() {
+    local pkg=$1
+    shift
+
+    bash "$PLATFORM_DIR/$pkg/ctrl" "$@"
+}
+
+if [ "$ACTION" = "config" ]; then
+    pkg=${1:?}
+    shift
+    run_package "$pkg" "$ACTION" "$@"
+    exit
+fi
+
+if [ "$#" -gt 0 ]; then
+    pkgs="$*"
+else
+    pkgs=$(
+        for dir in "$PLATFORM_DIR"/*; do
+            if [ -d "$dir" ] && [ -f "$dir/ctrl" ]; then
+                basename "$dir"
+            fi
+        done
+    )
+fi
+
+for pkg in $pkgs; do
+    run_package "$pkg" "$ACTION"
+done

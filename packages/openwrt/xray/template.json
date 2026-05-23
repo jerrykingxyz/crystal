@@ -1,0 +1,107 @@
+{
+  "log": {
+    "access": "none",
+    "error": "none",
+    "loglevel": "none"
+  },
+  "dns": {
+    "hosts": {
+      "geosite:category-ads-all": "0.0.0.0"
+    },
+    "servers": [
+      {
+        "address": "fakedns",
+        "domains": ["geosite:gfw"]
+      },
+      {
+        "address": "fakedns",
+        "domains": __proxy_domains__
+      },
+      __upstream_dns_servers__
+    ],
+    "disableFallbackIfMatch": true,
+    "queryStrategy": "UseIPv4"
+  },
+  "fakedns": {
+    "ipPool": "198.18.0.0/16",
+    "poolSize": 65535
+  },
+  "inbounds": [
+    {
+      "tag": "dns-in",
+      "listen": "127.0.0.1",
+      "port": 5353,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "8.8.8.8",
+        "port": 53,
+        "network": "tcp,udp"
+      }
+    },
+    {
+      "tag": "all-in",
+      "listen": "127.0.0.1",
+      "port": 1085,
+      "protocol": "dokodemo-door",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["fakedns"]
+      },
+      "settings": {
+        "network": "tcp,udp",
+        "followRedirect": true
+      },
+      "streamSettings": {
+        "sockopt": {
+          "tproxy": "tproxy"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "proxy",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "__server_ip__",
+            "port": 443,
+            "users": [
+              {
+                "id": "__user_id__",
+                "flow": "xtls-rprx-vision",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "serverName": "__domain__",
+          "fingerprint": "chrome",
+          "password": "__public_key__",
+          "shortId": ""
+        }
+      }
+    },
+    {
+      "tag": "dns-out",
+      "protocol": "dns"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": ["dns-in"],
+        "outboundTag": "dns-out"
+      }
+    ]
+  }
+}

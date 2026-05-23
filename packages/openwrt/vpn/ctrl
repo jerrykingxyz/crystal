@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+source "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+source "$ROOT_DIR/lib/config.sh"
+source "$ROOT_DIR/lib/render.sh"
+
+ACTION=${1:?}
+CFG_FILE="$PKG_DIR/config"
+TEMPLATE_FILE="$PKG_DIR/template.json"
+OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
+
+case "$ACTION" in
+    root_setup)
+        opkg update
+        opkg install xray-core
+        /etc/init.d/xray disable
+        ;;
+    user_setup)
+        keys=$(xray x25519)
+        private_key=
+        public_key=
+
+        # 按行匹配 key，再从冒号后取值，兼容 Xray 字段名变化。
+        while IFS= read -r item; do
+            key=$(printf '%s\n' "${item%%:*}" | tr '[:upper:]' '[:lower:]')
+            value=$(printf '%s\n' "${item#*:}" | sed 's/^[[:space:]]*//')
+
+            case "$key" in
+                *private*)
+                    private_key=$value
+                    ;;
+                *public*)
+                    public_key=$value
+                    ;;
+            esac
+        done <<EOF
+$keys
+EOF
+
+        if [ -z "$private_key" ] || [ -z "$public_key" ]; then
+            false
+        fi
+
+        update_config_var "$CFG_FILE" "private_key" "$private_key"
+        update_config_var "$CFG_FILE" "public_key" "$public_key"
+        ;;
+    start)
+        mkdir -p "$TEMP_DIR"
+        render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
+        xray run -c "$OUTPUT_CFG_FILE" &
+        ;;
+    stop)
+        pids=$(pgrep -f "$OUTPUT_CFG_FILE" 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            kill $pids || true
+        fi
+        ;;
+    restart)
+        "$0" stop
+        "$0" start
+        ;;
+    config)
+        update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
+        ;;
+    root_remove)
+        opkg remove xray-core || true
+        ;;
+    *)
+        false
+        ;;
+esac

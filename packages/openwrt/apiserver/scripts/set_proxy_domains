@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+XRAY_DIR="$ROOT_DIR/packages/openwrt/xray"
+
+"$XRAY_DIR/ctrl" config proxy_domains "${1:?}"
+"$XRAY_DIR/ctrl" restart
