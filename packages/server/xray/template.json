@@ -54,7 +54,7 @@
       {
         "type": "field",
         "outboundTag": "refuse",
-        "ip": ["geoip:cn", "geoip:private"]
+        "ip": ["geoip:private"]
       }
     ]
   }
