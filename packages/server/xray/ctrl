@@ -13,6 +13,7 @@ ACTION=$1
 CFG_FILE="$PKG_DIR/config"
 TEMPLATE_FILE="$PKG_DIR/template.json"
 OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
+SHARE_PORT=8001
 
 case "$ACTION" in
     root_setup)
@@ -61,6 +62,25 @@ EOF
     restart)
         "$0" stop
         "$0" start
+        ;;
+    share)
+        rm -rf "$TEMP_DIR/share"
+        mkdir -p "$TEMP_DIR/share"
+        token=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+        server_ip=$(ip route get 1.1.1.1 | awk '{ for (i=1; i<NF; i++) if ($i=="src") print $(i+1) }')
+
+        if [ -z "$server_ip" ]; then
+            false
+        fi
+
+        user_id=$(get_config_var "$CFG_FILE" "user_id")
+        domain=$(get_config_var "$CFG_FILE" "domain")
+        public_key=$(get_config_var "$CFG_FILE" "public_key")
+        vless_url="vless://$user_id@$server_ip:443?encryption=none&security=reality&type=tcp&flow=xtls-rprx-vision&sni=$domain&fp=chrome&pbk=$public_key&sid=#server-xray"
+
+        printf '%s\n' "$vless_url" | base64 | tr -d '\n' > "$TEMP_DIR/share/$token"
+        printf '%s\n' "http://$server_ip:$SHARE_PORT/$token"
+        python3 -m http.server "$SHARE_PORT" --bind 0.0.0.0 --directory "$TEMP_DIR/share"
         ;;
     config)
         update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
