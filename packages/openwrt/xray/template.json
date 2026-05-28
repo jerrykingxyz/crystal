@@ -6,12 +6,12 @@
   },
   "dns": {
     "hosts": {
-      "geosite:category-ads-all": "0.0.0.0"
+      "geosite:category-ads": "0.0.0.0"
     },
     "servers": [
       {
         "address": "fakedns",
-        "domains": ["geosite:gfw",__proxy_domains__],
+        "domains": ["geosite:gfw","geosite:google",__proxy_domains__],
         "skipFallback": true
       },
       "127.0.0.1"
@@ -123,7 +123,7 @@
       {
         "type": "field",
         "inboundTag": ["http-in"],
-        "domain": ["geosite:gfw",__proxy_domains__],
+        "domain": ["geosite:gfw","geosite:google",__proxy_domains__],
         "outboundTag": "proxy"
       }
     ]
