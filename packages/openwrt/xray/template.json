@@ -11,7 +11,7 @@
     "servers": [
       {
         "address": "fakedns",
-        "domains": ["geosite:gfw","geosite:google",__proxy_domains__],
+        "domains": ["geosite:gfw","geosite:google","geosite:openai",__proxy_domains__],
         "skipFallback": true
       },
       "127.0.0.1"
@@ -123,7 +123,7 @@
       {
         "type": "field",
         "inboundTag": ["http-in"],
-        "domain": ["geosite:gfw","geosite:google",__proxy_domains__],
+        "domain": ["geosite:gfw","geosite:google","geosite:openai",__proxy_domains__],
         "outboundTag": "proxy"
       }
     ]
