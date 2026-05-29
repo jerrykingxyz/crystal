@@ -31,6 +31,7 @@
   ],
   "outbounds": [
     {
+      "tag": "direct",
       "protocol": "freedom"
     },
     {
@@ -46,6 +47,11 @@
   "routing": {
     "domainStrategy": "IPOnDemand",
     "rules": [
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": ["geosite:google", "geosite:openai"]
+      },
       {
         "type": "field",
         "outboundTag": "refuse",
