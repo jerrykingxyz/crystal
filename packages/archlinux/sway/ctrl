@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Nvidia + Sway 需要在启动参数中开启 nvidia_drm.modeset=1 和 nvidia_drm.fbdev=1。
+# 修改 /etc/default/grub 后执行 grub-mkconfig -o /boot/grub/grub.cfg。
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+
+case "$ACTION" in
+    root_setup)
+        pacman_install sway swaybg
+        ;;
+    user_setup)
+        create_link "$PKG_DIR" "$HOME/.config/sway"
+        ;;
+    run)
+        sway
+        ;;
+    profile)
+        export WLR_NO_HARDWARE_CURSORS=1
+        export WLR_RENDERER=vulkan
+        export XDG_SESSION_TYPE=wayland
+        export MOZ_ENABLE_WAYLAND=1
+        export GBM_BACKEND=nvidia_drm
+        export __GL_GSYNC_ALLOWED=0
+        export __GL_VRR_ALLOWED=0
+        export __GLX_VENDOR_LIBRARY_NAME=nvidia
+        ;;
+    root_remove)
+        pacman_remove sway swaybg
+        ;;
+    user_remove)
+        rm -f "$HOME/.config/sway"
+        ;;
+    *)
+        false
+        ;;
+esac

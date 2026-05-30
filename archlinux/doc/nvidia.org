@@ -1,6 +1,0 @@
-// install nvidia driver
-pacman -S nvidia
-
-// edit /etc/default/grub set drm open
-// add nvidia_drm.modeset=1 nvidia_drm.fbdev=1 to boot variables
-// grub-mkconfig -o /boot/grub/grub.cfg

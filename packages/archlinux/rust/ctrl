@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -e
+
+# rustup 安装编译器和组件到用户空间，root_setup 只安装 rustup 本身。
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+
+case "$ACTION" in
+    root_setup)
+        pacman_install rustup
+        ;;
+    user_setup)
+        rustup default stable
+        rustup component add rust-analyzer
+        ;;
+    root_remove)
+        pacman_remove rustup
+        ;;
+    user_remove)
+        rm -rf "$HOME/.rustup"
+        ;;
+    *)
+        false
+        ;;
+esac

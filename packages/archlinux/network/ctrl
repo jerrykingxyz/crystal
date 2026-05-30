@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -e
+
+# netctl 可从 /etc/netctl/examples 复制 DHCP 或 WPA 模板，再用 netctl start/enable 启动。
+# 常用排障命令：ip link、wifi-menu、netctl list。
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+
+case "$ACTION" in
+    root_setup)
+        pacman_install netctl dhcpcd dialog wpa_supplicant
+        systemctl start systemd-resolved
+        systemctl start systemd-timesyncd
+        systemctl enable systemd-resolved
+        systemctl enable systemd-timesyncd
+        ;;
+    root_remove)
+        systemctl stop systemd-resolved
+        systemctl stop systemd-timesyncd
+        systemctl disable systemd-resolved
+        systemctl disable systemd-timesyncd
+        pacman_remove netctl dhcpcd dialog wpa_supplicant
+        ;;
+    *)
+        false
+        ;;
+esac

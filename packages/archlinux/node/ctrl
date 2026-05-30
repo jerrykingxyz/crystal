@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -e
+
+# 全局 npm 包安装到用户目录，避免写入 /usr/lib/node_modules。
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+NODE_LIB="$HOME/.node"
+
+case "$ACTION" in
+    root_setup)
+        pacman_install nodejs npm
+        ;;
+    user_setup)
+        mkdir -p "$NODE_LIB"
+        npm_config_prefix="$NODE_LIB" npm install -g prettier typescript typescript-language-server vscode-json-languageserver
+        ;;
+    profile)
+        export PATH="$NODE_LIB/bin:$PATH"
+        export npm_config_prefix="$NODE_LIB"
+        ;;
+    root_remove)
+        pacman_remove nodejs npm
+        ;;
+    user_remove)
+        rm -rf "$NODE_LIB"
+        ;;
+    *)
+        false
+        ;;
+esac

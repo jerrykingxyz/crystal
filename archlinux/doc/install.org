@@ -1,5 +1,0 @@
-# install archlinux note
-
-# create user
-# TODO
-
