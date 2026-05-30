@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+
+case "$ACTION" in
+    root_setup)
+        pacman_install emacs
+        ;;
+    user_setup)
+        if [ ! -d "$HOME/.emacs.d" ]; then
+            git clone git@github.com:jerrykingxyz/emacs.d.git "$HOME/.emacs.d"
+        fi
+        ;;
+    root_remove)
+        pacman_remove emacs
+        ;;
+    user_remove)
+        rm -rf "$HOME/.emacs.d"
+        ;;
+    *)
+        false
+        ;;
+esac

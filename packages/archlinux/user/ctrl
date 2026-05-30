@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -e
+
+# 创建系统用户：packages/archlinux/user/ctrl create <username>。
+# create 会调用 passwd 进入交互式密码设置，因此不放入默认 setup。
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+
+ACTION=${1:?}
+shift
+
+case "$ACTION" in
+    create)
+        username=${1:-}
+        if [ -z "$username" ]; then
+            echo "missing username" >&2
+            false
+        fi
+
+        homedir="/home/$username"
+
+        if [ ! -d "$homedir" ]; then
+            mkdir -p "$homedir"
+        fi
+
+        if ! id "$username" >/dev/null 2>&1; then
+            useradd -d "$homedir" "$username"
+        fi
+
+        passwd "$username"
+        ;;
+    *)
+        false
+        ;;
+esac

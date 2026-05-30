@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+
+case "$ACTION" in
+    root_setup)
+        pacman_install openssh
+        ;;
+    root_remove)
+        pacman_remove openssh
+        ;;
+    *)
+        false
+        ;;
+esac

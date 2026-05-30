@@ -2,6 +2,81 @@
 
 set -e
 
-ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
+PLATFORM_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+ACTION=${1:?}
+shift
 
-bash "$ROOT_DIR/archlinux/ctrl" "$@"
+select_packages() {
+    if [ "$#" -gt 0 ]; then
+        echo "$*"
+        return
+    fi
+
+    for dir in "$PLATFORM_DIR"/*; do
+        if [ -d "$dir" ] && [ -f "$dir/ctrl" ]; then
+            basename "$dir"
+        fi
+    done
+}
+
+package_supports_action() {
+    local pkg=$1
+    local action=$2
+
+    grep -Eq "^[[:space:]]*$action\)" "$PLATFORM_DIR/$pkg/ctrl"
+}
+
+run_package() {
+    local pkg=$1
+    local action=$2
+    shift 2
+
+    if [ ! -f "$PLATFORM_DIR/$pkg/ctrl" ]; then
+        echo "unknown archlinux package: $pkg" >&2
+        false
+    fi
+
+    if ! package_supports_action "$pkg" "$action"; then
+        return 2
+    fi
+
+    if [ "$action" = "profile" ]; then
+        source "$PLATFORM_DIR/$pkg/ctrl" "$action" "$@"
+    else
+        bash "$PLATFORM_DIR/$pkg/ctrl" "$action" "$@"
+    fi
+}
+
+run_packages() {
+    local action=$1
+    local ran=0
+    local status
+    shift
+
+    for pkg in "$@"; do
+        if run_package "$pkg" "$action"; then
+            ran=1
+        else
+            status=$?
+            if [ "$status" != "2" ]; then
+                return "$status"
+            fi
+        fi
+    done
+
+    [ "$ran" = "1" ]
+}
+
+case "$ACTION" in
+    config)
+        pkg=${1:?}
+        shift
+        run_package "$pkg" "$ACTION" "$@"
+        ;;
+    profile)
+        run_packages "$ACTION" $(select_packages "$@")
+        ;;
+    *)
+        run_packages "$ACTION" $(select_packages "$@")
+        ;;
+esac

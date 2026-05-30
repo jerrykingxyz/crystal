@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Bash 包负责确认 bash 可用，并把平台 profile 注册到用户 bash 配置。
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+PROFILE_CODE="source $(CDPATH= cd -- "$PKG_DIR/.." && pwd)/ctrl profile"
+
+case "$ACTION" in
+    root_setup)
+        pacman_install bash
+        ;;
+    user_setup)
+        touch "$HOME/.bashrc" "$HOME/.bash_profile"
+
+        if ! grep -Fxq "$PROFILE_CODE" "$HOME/.bashrc"; then
+            printf '%s\n' "$PROFILE_CODE" >> "$HOME/.bashrc"
+        fi
+
+        if ! grep -Fxq "$PROFILE_CODE" "$HOME/.bash_profile"; then
+            printf '%s\n' "$PROFILE_CODE" >> "$HOME/.bash_profile"
+        fi
+
+        ;;
+    user_remove)
+        if [ -f "$HOME/.bashrc" ]; then
+            grep -Fxv "$PROFILE_CODE" "$HOME/.bashrc" > "$HOME/.bashrc.tmp.$$" || true
+            mv "$HOME/.bashrc.tmp.$$" "$HOME/.bashrc"
+        fi
+
+        if [ -f "$HOME/.bash_profile" ]; then
+            grep -Fxv "$PROFILE_CODE" "$HOME/.bash_profile" > "$HOME/.bash_profile.tmp.$$" || true
+            mv "$HOME/.bash_profile.tmp.$$" "$HOME/.bash_profile"
+        fi
+        ;;
+    profile)
+        export PATH="$PKG_DIR/command:$PATH"
+        export EDITOR=vim
+        ;;
+    *)
+        false
+        ;;
+esac

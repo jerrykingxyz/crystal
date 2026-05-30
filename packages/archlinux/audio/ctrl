@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -e
+
+# 蓝牙调试：安装 bluez/bluez-utils 后，可用 bluetoothctl 执行 power、scan、pair。
+# 如果蓝牙音频需要 ALSA 支持，再额外安装 bluez-alsa。
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/archlinux.sh"
+
+ACTION=${1:?}
+
+case "$ACTION" in
+    root_setup)
+        pacman_install alsa-utils bluez bluez-utils
+        ;;
+    user_setup)
+        create_link "$PKG_DIR/.asoundrc" "$HOME/.asoundrc"
+        ;;
+    run)
+        alsamixer
+        ;;
+    root_remove)
+        pacman_remove alsa-utils bluez bluez-utils
+        ;;
+    user_remove)
+        rm -f "$HOME/.asoundrc"
+        ;;
+    *)
+        false
+        ;;
+esac
