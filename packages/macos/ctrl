@@ -2,36 +2,26 @@
 
 set -e
 
-PLATFORM_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+. "$(dirname "${BASH_SOURCE[0]}")/../../lib/platform.sh"
+
+init_platform_env "${BASH_SOURCE[0]}"
+
 ACTION=${1:?}
 shift
-
-run_package() {
-    local pkg=$1
-    shift
-
-    bash "$PLATFORM_DIR/$pkg/ctrl" "$@"
-}
 
 if [ "$ACTION" = "config" ]; then
     pkg=${1:?}
     shift
-    run_package "$pkg" "$ACTION" "$@"
+    run_platform_package "$pkg" "$ACTION" "$@"
     exit
 fi
 
 if [ "$#" -gt 0 ]; then
     pkgs="$*"
 else
-    pkgs=$(
-        for dir in "$PLATFORM_DIR"/*; do
-            if [ -d "$dir" ] && [ -f "$dir/ctrl" ]; then
-                basename "$dir"
-            fi
-        done
-    )
+    pkgs=$(list_platform_packages)
 fi
 
 for pkg in $pkgs; do
-    run_package "$pkg" "$ACTION"
+    run_platform_package "$pkg" "$ACTION"
 done

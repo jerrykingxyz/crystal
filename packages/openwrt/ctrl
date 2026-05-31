@@ -2,8 +2,10 @@
 
 set -e
 
-PLATFORM_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-ROOT_DIR=$(CDPATH= cd -- "$PLATFORM_DIR/../.." && pwd)
+. "$(dirname "${BASH_SOURCE[0]}")/../../lib/platform.sh"
+
+init_platform_env "${BASH_SOURCE[0]}"
+
 DEFAULT_PACKAGES="xray nftables dhcp dns vpn apiserver"
 REVERSE_PACKAGES="apiserver vpn dns dhcp nftables xray"
 ACTION=${1:?}
@@ -22,30 +24,6 @@ select_packages() {
     fi
 }
 
-package_supports_action() {
-    local pkg=$1
-    local action=$2
-
-    grep -Eq "(^|[[:space:]\|])$action(\)|\|)" "$PLATFORM_DIR/$pkg/ctrl"
-}
-
-run_package() {
-    local pkg=$1
-    local action=$2
-    shift 2
-
-    if [ ! -f "$PLATFORM_DIR/$pkg/ctrl" ]; then
-        echo "unknown openwrt package: $pkg" >&2
-        return 1
-    fi
-
-    if ! package_supports_action "$pkg" "$action"; then
-        return 2
-    fi
-
-    bash "$PLATFORM_DIR/$pkg/ctrl" "$action" "$@"
-}
-
 run_packages() {
     local action=$1
     local ran=0
@@ -53,7 +31,7 @@ run_packages() {
     shift
 
     for pkg in "$@"; do
-        if run_package "$pkg" "$action"; then
+        if run_supported_platform_package "$pkg" "$action"; then
             ran=1
         else
             status=$?
@@ -70,11 +48,7 @@ case "$ACTION" in
     config)
         pkg=${1:?}
         shift
-        if [ ! -f "$PLATFORM_DIR/$pkg/ctrl" ]; then
-            echo "unknown openwrt package: $pkg" >&2
-            false
-        fi
-        bash "$PLATFORM_DIR/$pkg/ctrl" "$ACTION" "$@"
+        run_platform_package "$pkg" "$ACTION" "$@"
         ;;
     root_setup)
         rm -f /etc/init.d/crystal
