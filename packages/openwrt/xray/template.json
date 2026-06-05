@@ -6,7 +6,7 @@
   },
   "dns": {
     "hosts": {
-      "geosite:category-ads": "0.0.0.0"
+      "geosite:category-ads-all": "0.0.0.0"
     },
     "servers": [
       {
