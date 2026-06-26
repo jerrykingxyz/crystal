@@ -1,4 +1,4 @@
 server_ip=1.1.1.1
 user_id=00000000-0000-0000-0000-000000000000
-domain=www.microsoft.com
+domain=cdn.jsdelivr.net
 public_key=replace_with_server_public_key
