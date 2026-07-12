@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Xray 由官方 systemd 服务托管，start 会渲染并发布正式配置。
+
 set -e
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
@@ -13,7 +15,17 @@ ACTION=$1
 CFG_FILE="$PKG_DIR/config"
 TEMPLATE_FILE="$PKG_DIR/template.json"
 OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
+SYSTEM_CFG_FILE=/usr/local/etc/xray/config.json
 SHARE_PORT=8001
+
+case "$ACTION" in
+    root_setup|start|stop|restart)
+        if [ "$EUID" -ne 0 ]; then
+            printf '%s\n' "$ACTION 需要 root 权限" >&2
+            exit 1
+        fi
+        ;;
+esac
 
 case "$ACTION" in
     root_setup)
@@ -54,16 +66,14 @@ EOF
     start)
         mkdir -p "$TEMP_DIR"
         render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
-        xray -c "$OUTPUT_CFG_FILE" &
+        xray run -test -config "$OUTPUT_CFG_FILE"
+        cp -f "$OUTPUT_CFG_FILE" "$SYSTEM_CFG_FILE"
+        systemctl restart xray
         ;;
     stop)
-        pids=$(pgrep -f "$OUTPUT_CFG_FILE" 2>/dev/null || true)
-        if [ ! -z "$pids" ]; then
-            kill $pids || true
-        fi
+        systemctl stop xray
         ;;
     restart)
-        "$0" stop
         "$0" start
         ;;
     share)
