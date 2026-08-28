@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+# Certbot 使用 standalone 模式签发证书，并控制系统自带的自动续期调度。
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/config.sh"
+. "$ROOT_DIR/lib/server.sh"
+
+ACTION=${1:?}
+CFG_FILE="$PKG_DIR/config"
+RENEW_TIMER=
+RENEW_SERVICE=
+
+case "$ACTION" in
+    root_setup|root_remove|start|stop)
+        if [ "$EUID" -ne 0 ]; then
+            printf '%s\n' "$ACTION 需要 root 权限" >&2
+            exit 1
+        fi
+        ;;
+esac
+
+if [ "$ACTION" = start ] || [ "$ACTION" = stop ]; then
+    if systemctl cat certbot.timer >/dev/null 2>&1; then
+        RENEW_TIMER=certbot.timer
+        RENEW_SERVICE=certbot.service
+    elif systemctl cat certbot-renew.timer >/dev/null 2>&1; then
+        RENEW_TIMER=certbot-renew.timer
+        RENEW_SERVICE=certbot-renew.service
+    else
+        printf '%s\n' "找不到 Certbot 自动续期服务" >&2
+        exit 1
+    fi
+fi
+
+case "$ACTION" in
+    root_setup)
+        . /etc/os-release
+        if [ "$ID" = centos ]; then
+            server_install epel-release
+        fi
+        server_install certbot
+        ;;
+    root_remove)
+        "$0" stop
+        server_remove certbot
+        ;;
+    start)
+        "$0" stop
+
+        domain=$(get_config_var "$CFG_FILE" domain)
+        email=$(get_config_var "$CFG_FILE" email)
+        deploy_hook=$(get_config_var "$CFG_FILE" deploy_hook)
+
+        deploy_hook_args=()
+        if [ -n "$deploy_hook" ]; then
+            deploy_hook_args=(--deploy-hook "$deploy_hook")
+        fi
+
+        certbot certonly \
+            --standalone \
+            --cert-name "$domain" \
+            --domain "$domain" \
+            --email "$email" \
+            --agree-tos \
+            --no-eff-email \
+            --non-interactive \
+            --keep-until-expiring \
+            "${deploy_hook_args[@]}"
+
+        systemctl enable --now "$RENEW_TIMER"
+        ;;
+    stop)
+        if systemctl cat "$RENEW_TIMER" >/dev/null 2>&1; then
+            systemctl disable --now "$RENEW_TIMER"
+        fi
+        if systemctl cat "$RENEW_SERVICE" >/dev/null 2>&1; then
+            systemctl stop "$RENEW_SERVICE"
+        fi
+        ;;
+    config)
+        update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
+        ;;
+    *)
+        printf '%s\n' "package $PKG_NAME ignore action $ACTION"
+        ;;
+esac

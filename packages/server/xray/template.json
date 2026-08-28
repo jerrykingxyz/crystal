@@ -21,7 +21,7 @@
         "network": "tcp",
         "security": "reality",
         "realitySettings": {
-          "target": "__domain__:443",
+          "target": "__target__",
           "serverNames": ["__domain__"],
           "privateKey": "__private_key__",
           "shortIds": [""]

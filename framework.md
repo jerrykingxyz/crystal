@@ -19,11 +19,11 @@ crystal/
 ```
 
 - `packages/<platform>/<package>` 是主要包结构。
-- `platform` 表示运行目标，例如 `openwrt`、`archlinux`、`macos` 或 `server`。
+- `platform` 表示运行目标或配置源头，例如 `openwrt`、`archlinux`、`macos`、`server` 或 `trust`。
 - 根目录 `ctrl` 根据当前环境选择平台入口；需要手动指定时使用 `CRYSTAL_PLATFORM=<platform>`。
 - `packages/<platform>/ctrl` 是平台入口，负责批量分发本平台包，并承载必要的平台级动作。
 - `temp/<platform>/<package>` 存放运行时生成文件。
-- `lib/` 用于存放已经复用的公共 shell helper，例如 `lib/env.sh`、`lib/config.sh` 和 `lib/render.sh`。
+- `lib/` 用于存放已经复用的公共 shell helper，例如 `lib/env.sh`、`lib/config.sh`、`lib/render.sh`、`lib/platform.sh` 和 `lib/server.sh`。
 
 ## 配置格式
 
@@ -49,7 +49,7 @@ key2=value2
 
 - 根入口和平台入口使用 `ctrl <action> [package...]` 分发普通 action；不指定 package 时表示全部包。
 - 平台入口的配置更新使用 `ctrl config <package> <key> <value>`。
-- 包脚本不内置 usage 文案；支持的 action 以文档为准，未知 action 直接失败。
+- 包脚本不内置 usage 文案；未实现的 action 输出 `package <name> ignore action <action>` 并成功返回，让平台入口无需感知包的具体能力。
 - `root_setup` 和 `user_setup` 应支持多次运行；二次运行应刷新依赖或覆盖生成物。
 - `root_setup`：需要 root 权限的准备工作，例如安装依赖包、写系统服务或修改系统网络配置。
 - `user_setup`：用户态配置，例如 dotfiles、shell profile、用户级服务配置或本地密钥材料生成。
@@ -68,6 +68,7 @@ key2=value2
 - 可跨平台复用的逻辑放入 `lib/`，平台相关逻辑保留在平台包脚本内，或后续收敛到 `lib/platform/<platform>.sh`。
 - 生成文件、本地配置和 secrets 不进 git。
 - 公共库需要能够安全地被重复 source，并由模块自身管理依赖加载。
+- `trust` 平台可以作为配置和密钥源头，但普通平台包仍只读取自己的本地 `config`；跨机器分发必须通过显式导出或应用动作完成。
 
 ## 包环境
 

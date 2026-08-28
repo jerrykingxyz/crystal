@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Nginx 提供 HTTPS 网站。
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+. "$SCRIPT_DIR/../../../lib/env.sh"
+init_pkg_env "${BASH_SOURCE[0]}"
+. "$ROOT_DIR/lib/config.sh"
+. "$ROOT_DIR/lib/render.sh"
+. "$ROOT_DIR/lib/server.sh"
+
+ACTION=${1:?}
+CFG_FILE="$PKG_DIR/config"
+TEMPLATE_FILE="$PKG_DIR/template.conf"
+OUTPUT_CFG_FILE="$TEMP_DIR/crystal.conf"
+SYSTEM_CFG_FILE=/etc/nginx/conf.d/crystal.conf
+
+case "$ACTION" in
+    root_setup|root_remove|start|stop|restart)
+        if [ "$EUID" -ne 0 ]; then
+            printf '%s\n' "$ACTION 需要 root 权限" >&2
+            exit 1
+        fi
+        ;;
+esac
+
+case "$ACTION" in
+    root_setup)
+        server_install nginx
+        ;;
+    root_remove)
+        systemctl disable --now nginx 2>/dev/null || true
+        rm -f "$SYSTEM_CFG_FILE"
+        server_remove nginx
+        ;;
+    start)
+        mkdir -p "$TEMP_DIR"
+        render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
+        cp -f "$OUTPUT_CFG_FILE" "$SYSTEM_CFG_FILE"
+        nginx -t
+        systemctl enable nginx
+        systemctl restart nginx
+        ;;
+    stop)
+        systemctl stop nginx
+        ;;
+    restart)
+        "$0" start
+        ;;
+    config)
+        update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
+        ;;
+    *)
+        printf '%s\n' "package $PKG_NAME ignore action $ACTION"
+        ;;
+esac
