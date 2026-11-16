@@ -1,0 +1,5 @@
+domain=home.crystalnode.top
+ip_url=https://api64.ipify.org
+update_command=bash "$DDNS_DIR/namesilo"
+api_key=
+ttl=3600

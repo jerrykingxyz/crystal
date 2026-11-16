@@ -6,8 +6,8 @@ set -e
 
 init_platform_env "${BASH_SOURCE[0]}"
 
-DEFAULT_PACKAGES="xray nftables dhcp dns vpn apiserver"
-REVERSE_PACKAGES="apiserver vpn dns dhcp nftables xray"
+DEFAULT_PACKAGES="xray nftables dhcp dns vpn apiserver ddns"
+REVERSE_PACKAGES="ddns apiserver vpn dns dhcp nftables xray"
 ACTION=${1:?}
 shift
 
