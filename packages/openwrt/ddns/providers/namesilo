@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# 用法：namesilo <fqdn> <ip> [--type AAAA] [--ttl 3600]，API Key 从标准输入读取。
+
+set -e
+set -o pipefail
+
+fqdn=${1:?}
+ip=${2:?}
+shift 2
+type=AAAA
+ttl=3600
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --type) type=${2:?}; shift 2 ;;
+        --ttl) ttl=${2:?}; shift 2 ;;
+        *) echo "ddns: 未知参数 $1" >&2; exit 1 ;;
+    esac
+done
+IFS= read -r api_key || true
+
+if [ -z "$api_key" ] || [[ ! "$ttl" =~ ^[0-9]+$ ]] ||
+    [ "$ttl" -lt 3600 ] || [ "$ttl" -gt 2592000 ]; then
+    echo 'ddns: 请配置 NameSilo api_key 和有效的 ttl（最小 3600）' >&2
+    exit 1
+fi
+
+# 一级子域名：home.example.com 拆成 label=home、zone=example.com。
+label=${fqdn%%.*}
+zone=${fqdn#*.}
+if [ "$label" = "$zone" ] || [[ "$zone" != *.* ]]; then
+    echo 'ddns: NameSilo 更新脚本需要完整的一级子域名' >&2
+    exit 1
+fi
+
+# HTTP 成功不代表业务成功；Key 通过 curl 配置从标准输入传入，不出现在进程参数中。
+request() {
+    local operation=$1 response code
+    shift
+    response=$(printf 'data-urlencode = "key=%s"\n' "$api_key" |
+        curl -q -K - --noproxy '*' --fail --silent --show-error \
+            --connect-timeout 10 --max-time 20 --get \
+            --data-urlencode version=1 --data-urlencode type=xml \
+            --data-urlencode "domain=$zone" "$@" \
+            "https://www.namesilo.com/api/$operation" | tr -d '\r\n')
+    code=$(printf '%s' "$response" | sed -n 's/.*<code>[[:space:]]*\([0-9][0-9]*\)[[:space:]]*<\/code>.*/\1/p')
+    if [ "$code" != 300 ]; then
+        echo "ddns: NameSilo $operation 失败，请检查 API Key、IP 限制和域名权限" >&2
+        return 1
+    fi
+    printf '%s\n' "$response"
+}
+
+# 每次更新前重新查询 ID，更新后旧 ID 即失效。
+record_id=$(request dnsListRecords | awk -v label="$label" -v fqdn="$fqdn" -v rtype="$type" '
+BEGIN { RS="</resource_record>"; FS="[<>]" }
+{
+    id=host=rt=""
+    for (i=1; i<NF; i++) {
+        value=$(i+1)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+        if ($i=="record_id") id=value
+        if ($i=="host") host=value
+        if ($i=="type") rt=value
+    }
+    if ((host==label || host==fqdn) && rt==rtype && id!="") print id
+}')
+case "$record_id" in
+    '')
+        echo "ddns: 请先在 NameSilo 创建 $fqdn 的 $type 记录" >&2
+        exit 1
+        ;;
+    *$'\n'*)
+        echo "ddns: $fqdn 存在多条 $type 记录，请先保留一条" >&2
+        exit 1
+        ;;
+esac
+
+request dnsUpdateRecord \
+    --data-urlencode "rrid=$record_id" --data-urlencode "rrhost=$label" \
+    --data-urlencode "rrvalue=$ip" --data-urlencode "rrttl=$ttl" > /dev/null
