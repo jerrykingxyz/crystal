@@ -13,6 +13,31 @@ ACTION=${1:?}
 CFG_FILE="$PKG_DIR/config"
 TEMPLATE_FILE="$PKG_DIR/template.json"
 OUTPUT_CFG_FILE="$TEMP_DIR/config.json"
+FIREWALL_RULE=crystal_vpn
+
+# 只放行 WAN 入站 IPv6 的代理端口；先删后加，重复执行只保留一条。
+open_firewall() {
+    local port
+    port=$(get_config_var "$CFG_FILE" port)
+    uci -q delete "firewall.$FIREWALL_RULE" || true
+    uci set "firewall.$FIREWALL_RULE=rule"
+    uci set "firewall.$FIREWALL_RULE.name=crystal-vpn"
+    uci set "firewall.$FIREWALL_RULE.src=wan"
+    uci set "firewall.$FIREWALL_RULE.family=ipv6"
+    uci set "firewall.$FIREWALL_RULE.proto=tcp"
+    uci set "firewall.$FIREWALL_RULE.dest_port=$port"
+    uci set "firewall.$FIREWALL_RULE.target=ACCEPT"
+    uci commit firewall
+    /etc/init.d/firewall reload
+}
+
+close_firewall() {
+    if uci -q get "firewall.$FIREWALL_RULE" > /dev/null; then
+        uci delete "firewall.$FIREWALL_RULE"
+        uci commit firewall
+        /etc/init.d/firewall reload
+    fi
+}
 
 case "$ACTION" in
     root_setup)
@@ -53,12 +78,14 @@ EOF
         mkdir -p "$TEMP_DIR"
         render_config "$TEMPLATE_FILE" "$CFG_FILE" > "$OUTPUT_CFG_FILE"
         xray run -c "$OUTPUT_CFG_FILE" &
+        open_firewall
         ;;
     stop)
         pids=$(pgrep -f "$OUTPUT_CFG_FILE" 2>/dev/null || true)
         if [ -n "$pids" ]; then
             kill $pids || true
         fi
+        close_firewall
         ;;
     restart)
         "$0" stop
@@ -68,6 +95,7 @@ EOF
         update_config_var "$CFG_FILE" "${2:?}" "${3:?}"
         ;;
     root_remove)
+        close_firewall
         opkg remove xray-core || true
         ;;
     *)
