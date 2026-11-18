@@ -32,10 +32,7 @@ set_domains() {
 }
 
 case "$ACTION" in
-    root_setup)
-        ;;
-    root_remove)
-        opkg remove smartdns || true
+    root_setup|root_remove)
         ;;
     start)
         clear_domains
